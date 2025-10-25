@@ -1,0 +1,40 @@
+name: Daily Model Train Pipeline
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run every hour
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  run-data-pipeline:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jupyter nbconvert pandas numpy boto3 requests matplotlib seaborn scikit-learn shap python-dotenv 
+          
+      - name: Train Model
+        run: |
+          jupyter nbconvert --to script notebooks/03_model_train.ipynb
+          python notebooks/03_model_train.ipynb
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+ 
+      - name: Predict and Evaluate
+        run: |
+          jupyter nbconvert --to script notebooks/05_prediction.ipynb
+          python notebooks/05_prediction.ipynb
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
