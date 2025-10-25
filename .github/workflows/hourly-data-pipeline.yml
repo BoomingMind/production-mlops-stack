@@ -34,7 +34,7 @@ jobs:
       - name: Run EDA and cleaning
         run: |
           jupyter nbconvert --to script notebooks/02_EDA.ipynb
-          python 02_EDA.py
+          python notebooks/02_EDA.py
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
