@@ -1,8 +1,8 @@
-name: Daily Model Train Pipeline
+name: Hourly Data Pipeline
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Run every hour
+    - cron: '0 * * * *'  # Run every hour
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
@@ -21,21 +21,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install jupyter nbconvert
+          pip install jupyter nbconvert pandas numpy boto3 requests matplotlib seaborn scikit-learn shap python-dotenv 
           
-      - name: Train Model
+      - name: Run feature extraction from API
         run: |
-          jupyter nbconvert --to script notebooks/03_model_train.ipynb
-          python notebooks/03_model_train.py
+          jupyter nbconvert --to script notebooks/01_data_fetch_hourly.ipynb
+          python notebooks/01_data_fetch_hourly.py
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
- 
-      - name: Predict and Evaluate
+          
+      - name: Run EDA and cleaning
         run: |
-          jupyter nbconvert --to script notebooks/05_prediction.ipynb
-          python notebooks/05_prediction.py
+          jupyter nbconvert --to script notebooks/02_EDA.ipynb
+          python 02_EDA.py
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
