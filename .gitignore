@@ -7,3 +7,46 @@ env/
 .env
 .DS_Store
 *.log
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# MLflow
+mlruns/
+mlflow-artifacts/
+*.db
+
+# Evidently
+monitoring/evidently/workspace/
+monitoring/evidently/reports/*.html
+
+# Data
+data/raw/
+data/processed/
+*.csv
+*.json
+
+# Models
+models/
+*.pkl
+*.h5
+*.pt
+*.pth
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
