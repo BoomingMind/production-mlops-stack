@@ -1,4 +1,4 @@
-# 🌍 MLOps Project - AQI Weather Prediction System
+# MLOps Project - AQI Weather Prediction System
 
 _Production-ready pipeline to predict AQI from weather data with experiment tracking, drift monitoring, and an inference API._
 
@@ -22,7 +22,7 @@ _Production-ready pipeline to predict AQI from weather data with experiment trac
 
 ---
 
-## 🎯 Overview
+## Overview
 
 **Elevator Pitch:** Real-time AQI prediction system leveraging weather data with production-grade MLOps practices including experiment tracking, data drift monitoring, and comprehensive observability.
 
@@ -106,7 +106,7 @@ graph LR
     B --> C[Data Processing]
     C --> D[Model Training]
     D --> E[MLflow Registry]
-  E --> F[Inference API (FastAPI)]
+    E --> F[Inference API - FastAPI]
     F --> G[Prometheus]
     G --> H[Grafana]
     C --> I[Evidently]
