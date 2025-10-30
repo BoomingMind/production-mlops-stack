@@ -96,7 +96,7 @@ jobs:
           
       - name: Coverage summary
         if: success()
-        run: echo "Test coverage meets minimum threshold of 60%"
+        run: echo "Test coverage meets minimum threshold of 80%"
 
   # ==================== JOB 3: SECURITY SCAN ====================
   security:
