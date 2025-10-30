@@ -1,0 +1,418 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ==================== JOB 1: LINT ====================
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          
+      - name: Install linting dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff==0.1.8 black==23.12.0
+          
+      - name: Run Ruff linter
+        run: |
+          echo "Running Ruff linter..."
+          ruff check src/ --output-format=github
+          
+      - name: Run Black formatter check
+        run: |
+          echo "Checking code formatting with Black..."
+          black --check src/
+          
+      - name: Lint summary
+        if: success()
+        run: echo "All linting checks passed!"
+
+  # ==================== JOB 2: TEST ====================
+  test:
+    name: Run Tests with Coverage
+    runs-on: ubuntu-latest
+    needs: lint
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Create tests directory if not exists
+        run: |
+          mkdir -p tests
+          
+      - name: Run pytest with coverage
+        run: |
+          echo "Running tests with coverage..."
+          pytest tests/ -v --cov=src --cov-report=term --cov-report=xml --cov-report=html --cov-fail-under=60
+        continue-on-error: false
+        
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          
+      - name: Upload coverage HTML report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: coverage-report
+          path: htmlcov/
+          
+      - name: Coverage summary
+        if: success()
+        run: echo "Test coverage meets minimum threshold of 60%"
+
+  # ==================== JOB 3: SECURITY SCAN ====================
+  security:
+    name: Security & Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: lint
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          
+      - name: Install pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit==2.6.3
+          
+      - name: Run pip-audit for Critical CVEs
+        run: |
+          echo "Scanning for security vulnerabilities..."
+          pip-audit --require-hashes --disable-pip || true
+          echo "Checking for CRITICAL vulnerabilities only..."
+          pip-audit --strict --vulnerability-service osv 2>&1 | tee audit-results.txt
+          
+          # Fail build if CRITICAL vulnerabilities found
+          if grep -i "critical" audit-results.txt; then
+            echo "CRITICAL vulnerabilities found! Failing build."
+            exit 1
+          else
+            echo "No critical vulnerabilities detected."
+          fi
+        continue-on-error: false
+        
+      - name: Upload audit results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-audit
+          path: audit-results.txt
+
+  # ==================== JOB 4: BUILD & PUSH DOCKER ====================
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    permissions:
+      contents: read
+      packages: write
+      
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix={{branch}}-,format=short
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=raw,value=${{ github.sha }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+      - name: Image digest
+        run: |
+          echo "Docker image built and pushed successfully!"
+          echo "Image tags: ${{ steps.meta.outputs.tags }}"
+
+  # ==================== JOB 5: CANARY DEPLOYMENT ====================
+  canary-deploy:
+    name: Deploy to Canary Environment
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Pull Docker image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          
+      - name: Stop existing canary container
+        run: |
+          docker stop aqi-canary || true
+          docker rm aqi-canary || true
+          
+      - name: Deploy to Canary environment
+        run: |
+          echo "Deploying to canary environment..."
+          docker run -d \
+            --name aqi-canary \
+            -p 8001:8000 \
+            -e CANARY=true \
+            -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            
+      - name: Wait for canary to be ready
+        run: |
+          echo "Waiting for canary service to start..."
+          timeout 60 bash -c 'until curl -f http://localhost:8001/health; do sleep 2; done'
+          echo "Canary service is ready!"
+          
+      - name: Canary deployment summary
+        run: |
+          echo "Canary deployment successful!"
+          echo "Canary URL: http://localhost:8001"
+
+  # ==================== JOB 6: ACCEPTANCE TESTS ====================
+  acceptance-tests:
+    name: Run Acceptance Tests on Canary
+    runs-on: ubuntu-latest
+    needs: canary-deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install test dependencies
+        run: |
+          pip install requests pytest
+          
+      - name: Create acceptance test script
+        run: |
+          cat > acceptance_tests.py << 'EOF'
+          import requests
+          import sys
+          
+          BASE_URL = "http://localhost:8001"
+          
+          # Golden test set with 5+ queries
+          test_cases = [
+              {
+                  "name": "Health Check",
+                  "method": "GET",
+                  "endpoint": "/health",
+                  "data": None
+              },
+              {
+                  "name": "Root Endpoint",
+                  "method": "GET",
+                  "endpoint": "/",
+                  "data": None
+              },
+              {
+                  "name": "Model Info",
+                  "method": "GET",
+                  "endpoint": "/model/info",
+                  "data": None
+              },
+              {
+                  "name": "Prediction - Good Air Quality",
+                  "method": "POST",
+                  "endpoint": "/predict",
+                  "data": {
+                      "co": 200.0, "no": 0.1, "no2": 10.0, "o3": 40.0, "so2": 5.0,
+                      "pm2_5": 15.0, "pm10": 30.0, "nh3": 2.0, "temperature_2m": 25.0,
+                      "relative_humidity_2m": 60.0, "precipitation": 0.0,
+                      "wind_speed_10m": 5.0, "wind_direction_10m": 180.0,
+                      "surface_pressure": 1013.0, "dew_point_2m": 18.0,
+                      "apparent_temperature": 26.0, "shortwave_radiation": 400.0,
+                      "et0_fao_evapotranspiration": 0.2, "year": 2025, "month": 10,
+                      "day": 30, "hour": 12
+                  }
+              },
+              {
+                  "name": "Prediction - Moderate Air Quality",
+                  "method": "POST",
+                  "endpoint": "/predict",
+                  "data": {
+                      "co": 300.0, "no": 1.0, "no2": 20.0, "o3": 60.0, "so2": 10.0,
+                      "pm2_5": 35.0, "pm10": 60.0, "nh3": 5.0, "temperature_2m": 28.0,
+                      "relative_humidity_2m": 70.0, "precipitation": 0.0,
+                      "wind_speed_10m": 3.0, "wind_direction_10m": 90.0,
+                      "surface_pressure": 1010.0, "dew_point_2m": 22.0,
+                      "apparent_temperature": 30.0, "shortwave_radiation": 500.0,
+                      "et0_fao_evapotranspiration": 0.3, "year": 2025, "month": 10,
+                      "day": 30, "hour": 14
+                  }
+              },
+              {
+                  "name": "Prediction - Poor Air Quality",
+                  "method": "POST",
+                  "endpoint": "/predict",
+                  "data": {
+                      "co": 500.0, "no": 2.0, "no2": 40.0, "o3": 100.0, "so2": 20.0,
+                      "pm2_5": 75.0, "pm10": 150.0, "nh3": 10.0, "temperature_2m": 32.0,
+                      "relative_humidity_2m": 80.0, "precipitation": 0.0,
+                      "wind_speed_10m": 1.0, "wind_direction_10m": 0.0,
+                      "surface_pressure": 1008.0, "dew_point_2m": 26.0,
+                      "apparent_temperature": 35.0, "shortwave_radiation": 600.0,
+                      "et0_fao_evapotranspiration": 0.4, "year": 2025, "month": 10,
+                      "day": 30, "hour": 16
+                  }
+              }
+          ]
+          
+          failed = 0
+          passed = 0
+          
+          print("=" * 70)
+          print("Running Acceptance Tests on Canary Environment")
+          print("=" * 70)
+          
+          for i, test in enumerate(test_cases, 1):
+              print(f"\nTest {i}/{len(test_cases)}: {test['name']}")
+              try:
+                  if test['method'] == 'GET':
+                      response = requests.get(f"{BASE_URL}{test['endpoint']}", timeout=10)
+                  else:
+                      response = requests.post(f"{BASE_URL}{test['endpoint']}", json=test['data'], timeout=10)
+                  
+                  if response.status_code == 200:
+                      print(f"  PASS - Status: {response.status_code}")
+                      passed += 1
+                  else:
+                      print(f"  FAIL - Status: {response.status_code}")
+                      print(f"  Response: {response.text}")
+                      failed += 1
+              except Exception as e:
+                  print(f"  FAIL - Error: {str(e)}")
+                  failed += 1
+          
+          print("\n" + "=" * 70)
+          print(f"Results: {passed} passed, {failed} failed out of {len(test_cases)} tests")
+          print("=" * 70)
+          
+          if failed > 0:
+              print("Acceptance tests FAILED!")
+              sys.exit(1)
+          else:
+              print("All acceptance tests PASSED!")
+              sys.exit(0)
+          EOF
+          
+      - name: Run acceptance tests
+        run: |
+          echo "Running acceptance tests against canary..."
+          python acceptance_tests.py
+          
+      - name: Cleanup canary container
+        if: always()
+        run: |
+          docker stop aqi-canary || true
+          docker rm aqi-canary || true
+          
+      - name: Acceptance test summary
+        if: success()
+        run: echo "All acceptance tests passed! Canary deployment validated."
+
+  # ==================== JOB 7: PROMOTE TO PRODUCTION ====================
+  promote-to-production:
+    name: Promote to Production
+    runs-on: ubuntu-latest
+    needs: acceptance-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Production promotion
+        run: |
+          echo "Canary tests passed! Ready for production deployment."
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          echo "Tag: latest has been updated"
+          
+      - name: Create deployment notification
+        run: |
+          echo "CI/CD Pipeline completed successfully!"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          echo "Ready for production deployment"
