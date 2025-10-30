@@ -299,7 +299,9 @@ def _build_feature_vector(input_data: "PredictionInput") -> np.ndarray:
 
         # Engineered datetime-based features if model expects them
         try:
-            dt = datetime(input_data.year, input_data.month, input_data.day, input_data.hour)
+            dt = datetime(
+                input_data.year, input_data.month, input_data.day, input_data.hour
+            )
             engineered: Dict[str, Any] = {
                 "day_of_week": float(dt.weekday()),
                 "is_weekend": float(1 if dt.weekday() >= 5 else 0),
@@ -315,7 +317,10 @@ def _build_feature_vector(input_data: "PredictionInput") -> np.ndarray:
                 values.append(float(input_dict[name]))
             elif name in engineered:
                 values.append(float(engineered[name]))
-            elif str(name).lower().startswith("unnamed") or str(name).lower() in {"index", "idx"}:
+            elif str(name).lower().startswith("unnamed") or str(name).lower() in {
+                "index",
+                "idx",
+            }:
                 values.append(0.0)
             else:
                 # Keep track of truly missing features
@@ -324,7 +329,13 @@ def _build_feature_vector(input_data: "PredictionInput") -> np.ndarray:
 
         if missing:
             # If everything else fits except a single suspicious column, try zero-fill
-            unresolved = [m for m in missing if not (m.lower().startswith("unnamed") or m.lower() in {"index", "idx"})]
+            unresolved = [
+                m
+                for m in missing
+                if not (
+                    m.lower().startswith("unnamed") or m.lower() in {"index", "idx"}
+                )
+            ]
             if unresolved:
                 raise HTTPException(
                     status_code=400,
@@ -453,7 +464,12 @@ async def model_info():
 
     # Try to expose expected feature metadata for debugging
     feature_names = getattr(scaler, "feature_names_in_", None)
-    n_features = int(getattr(scaler, "n_features_in_", 22))
+    n_features_raw = getattr(scaler, "n_features_in_", 22)
+    try:
+        n_features = int(n_features_raw)
+    except Exception:
+        # When scaler is mocked in tests or attribute isn't numeric
+        n_features = 22
 
     info = {
         "model_version": model_version,
@@ -462,7 +478,11 @@ async def model_info():
         "features_expected": n_features,
     }
     if feature_names is not None:
-        info["feature_names_in"] = list(map(str, feature_names))
+        try:
+            info["feature_names_in"] = list(map(str, feature_names))
+        except TypeError:
+            # When mocked or not iterable, skip exposing names
+            pass
 
     return info
 

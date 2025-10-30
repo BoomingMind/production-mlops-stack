@@ -86,6 +86,25 @@ docker-compose up -d
 docker-compose ps
 ```
 
+### Docker image (multi-stage)
+
+This project uses a multi-stage Dockerfile to produce a small, secure runtime image:
+- Builder stage: creates a Python 3.11 virtual environment and installs dependencies.
+- Runtime stage: based on python:3.11-slim, copies the prebuilt venv, runs as a non-root user, and exposes a healthcheck for `/health`.
+
+Build and run the API container locally (PowerShell):
+
+```powershell
+# Build fresh image
+docker build --no-cache -t aqi-prediction-api:latest .
+
+# Run the API (expects valid AWS creds in .env if you want model loading from S3)
+docker run --rm -p 8000:8000 --env-file .env aqi-prediction-api:latest
+
+# In another shell, verify health
+curl http://localhost:8000/health
+```
+
 ### Access Services
 
 | Service | URL | Credentials |
