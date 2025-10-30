@@ -180,6 +180,12 @@ evidently ui --workspace ./monitoring/evidently/workspace --port 7000
 ![Grafana Dashboard](./docs/screenshots/grafana_dashboard.png)
 *System monitoring dashboard showing CPU, memory, and API metrics*
 
+![Evidently Drift](./docs/screenshots/evidently_drift_dashboard.png)
+*Evidently dashboard showing data drift on held-out test set*
+
+![MLflow Model Registry](./docs/screenshots/mlflow_model_registry.png)
+*MLflow model registry with model v1 registered and promoted to Production*
+
 ---
 
 ## Cloud Integration
@@ -189,7 +195,7 @@ evidently ui --workspace ./monitoring/evidently/workspace --port 7000
 | Service | Purpose | Configuration |
 |---------|---------|---------------|
 | **S3** | Data storage | Bucket: `my-feature-store-data` |
-| **EC2** | (Optional) API hosting | - |
+| **EC2** | API hosting (optional/production) | Ubuntu 22.04, Docker runtime |
 
 ### Setup Instructions
 
@@ -209,6 +215,36 @@ AWS_SECRET_ACCESS_KEY=your_secret_key
 ```python
 # Automatically handled by notebooks/01_data_fetch_hourly.ipynb
 ```
+
+### Cloud Deployment (EC2) — How to Reproduce
+
+This project can be deployed on an EC2 instance and connect to S3 for model/artifact storage.
+
+1) Provision EC2:
+- Choose Ubuntu 22.04 (t2.medium or above recommended)
+- Open ports: 22 (SSH), 8000 (API), 3000 (Grafana), 5000 (MLflow), 9090 (Prometheus)
+
+2) Install Docker & Docker Compose:
+- Install Docker Engine and enable `docker compose` plugin.
+
+3) Configure environment:
+- Set the following environment variables (or use `.env`):
+  - `AWS_ACCESS_KEY_ID`
+  - `AWS_SECRET_ACCESS_KEY`
+
+4) Run services:
+- `docker compose up -d`
+- Verify MLflow at `http://<EC2_PUBLIC_IP>:5000`
+- Verify API at `http://<EC2_PUBLIC_IP>:8000/health`
+
+5) Observability:
+- Prometheus: `http://<EC2_PUBLIC_IP>:9090`
+- Grafana: `http://<EC2_PUBLIC_IP>:3000` (admin/admin)
+
+6) Model Registry (MLflow):
+- Tracking URI: `http://<EC2_PUBLIC_IP>:5000`
+- Register best model as `aqi-model` and promote to `Production` (v1).
+- Link: Add a screenshot of the registered model (see below).
 
 ---
 
