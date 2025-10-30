@@ -1,52 +1,198 @@
-# Python
+# ==================== PYTHON ====================
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
 .venv/
 venv/
 env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables
 .env
-.DS_Store
-*.log
-*.pyc
+.env.local
+.env.*.local
+
+# Testing
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.log
+.cache
+nosetests.xml
 
-# MLflow
+# ==================== MLFLOW ====================
 mlruns/
 mlflow-artifacts/
 *.db
+*.db-shm
+*.db-wal
 
-# Evidently
+# ==================== EVIDENTLY ====================
 monitoring/evidently/workspace/
 monitoring/evidently/reports/*.html
+monitoring/evidently/reports/*.json
 
-# Data
-data/raw/
-data/processed/
-*.csv
-*.json
+# ==================== DATA ====================
+# Exclude raw and processed data (too large for git)
+data/raw/*.csv
+data/raw/*.json
+data/processed/*.csv
+data/processed/*.json
 
-# Models
-models/
-*.pkl
-*.h5
-*.pt
-*.pth
+# Keep directory structure with .gitkeep
+!data/raw/.gitkeep
+!data/processed/.gitkeep
 
-# Jupyter
+# ==================== MODELS ====================
+# Exclude trained models (use DVC or S3 instead)
+models/*.pkl
+models/*.joblib
+models/*.h5
+models/*.pt
+models/*.pth
+models/*.onnx
+models/*.pb
+
+# Keep directory structure
+!models/.gitkeep
+!models/README.md
+
+# ==================== JUPYTER ====================
 .ipynb_checkpoints/
+*/.ipynb_checkpoints/*
 *.ipynb_checkpoints
 
-# IDE
+# Jupyter Notebook outputs (optional - uncomment to keep notebooks clean)
+# *.ipynb
+
+# ==================== IDE & EDITORS ====================
+# VSCode
 .vscode/
+*.code-workspace
+
+# PyCharm
 .idea/
+*.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
 *.swp
 *.swo
+*~
 
-# Docker
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ==================== DOCKER ====================
 *.log
+docker-compose.override.yml
 
-# OS
+# ==================== CLOUD & SECRETS ====================
+# AWS
+.aws/
+*.pem
+
+# GCP
+*.json.gcp
+*-key.json
+gcp-credentials.json
+
+# Azure
+.azure/
+
+# Credentials
+credentials.json
+secrets.yaml
+*.key
+
+# ==================== BUILD & DISTRIBUTION ====================
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==================== OS ====================
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ==================== MONITORING ====================
+# Prometheus data
+monitoring/prometheus/data/
+
+# Grafana
+monitoring/grafana/data/
+
+# ==================== CI/CD ====================
+# GitHub Actions artifacts (kept locally during development)
+.github/workflows/*.log
+
+# ==================== TEMPORARY FILES ====================
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+.DS_Store?
+
+# ==================== DOCUMENTATION ====================
+# Build artifacts
+docs/_build/
+docs/.doctrees/
+site/
+
+# ==================== KEEP THESE FILES ====================
+# Important: Don't ignore these
+!.gitkeep
+!.gitignore
+!.github/
+!.pre-commit-config.yaml
+!requirements.txt
+!Dockerfile
+!docker-compose.yml
+!Makefile
+!README.md
+!LICENSE
+!CONTRIBUTION.md
+!CODE_OF_CONDUCT.md
