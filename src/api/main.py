@@ -52,38 +52,38 @@ async def lifespan(app: FastAPI):
         )
 
         # Download model
-        print("📥 Loading model from S3...")
+        print("Loading model from S3...")
         model_buffer = BytesIO()
         s3.download_fileobj(bucket_name, model_key, model_buffer)
         model_buffer.seek(0)
         model = joblib.load(model_buffer)
-        print("✅ Model loaded successfully")
+        print("Model loaded successfully")
 
         # Download scaler
-        print("📥 Loading scaler from S3...")
+        print("Loading scaler from S3...")
         scaler_buffer = BytesIO()
         s3.download_fileobj(bucket_name, scaler_key, scaler_buffer)
         scaler_buffer.seek(0)
         scaler = joblib.load(scaler_buffer)
-        print("✅ Scaler loaded successfully")
+        print("Scaler loaded successfully")
 
         load_duration = time.time() - start_time
         model_load_time.set(load_duration)
         model_version_gauge.set(1.0)
 
-        print(f"\n🚀 Application startup complete in {load_duration:.2f}s")
+        print(f"\n Application startup complete in {load_duration:.2f}s")
         print(f"   Model type: {type(model).__name__}")
         print(f"   Model version: {model_version}")
 
     except Exception as e:
         error_counter.labels(error_type="model_loading").inc()
-        print(f"❌ Error loading model/scaler: {e}")
-        print("⚠️  WARNING: Model not loaded. API will return errors for predictions.")
+        print(f" Error loading model/scaler: {e}")
+        print("  WARNING: Model not loaded. API will return errors for predictions.")
 
     yield
 
     # Shutdown
-    print("🛑 Shutting down application...")
+    print(" Shutting down application...")
 
 
 # Initialize FastAPI app
@@ -225,6 +225,138 @@ class PredictionResultsResponse(BaseModel):
     metadata: Dict[str, Any]  # Allow any type for metadata values
 
 
+# ==================== UTILS ====================
+def _build_feature_vector(input_data: "PredictionInput") -> np.ndarray:
+    """
+    Build a feature vector aligned with the scaler's expected input.
+
+    Strategy:
+    - If scaler exposes feature_names_in_, align values by name.
+      Compute common engineered features if present (day_of_week, is_weekend).
+      Fill typical accidental columns (e.g., 'Unnamed: 0', 'index') with 0.0.
+    - Else, if feature count mismatches by 1 (common stray index), prepend 0.0.
+    - Else, raise a helpful HTTP 400 with required vs provided features.
+    """
+    # Base fields provided by the API schema
+    base_values = [
+        input_data.co,
+        input_data.no,
+        input_data.no2,
+        input_data.o3,
+        input_data.so2,
+        input_data.pm2_5,
+        input_data.pm10,
+        input_data.nh3,
+        input_data.temperature_2m,
+        input_data.relative_humidity_2m,
+        input_data.precipitation,
+        input_data.wind_speed_10m,
+        input_data.wind_direction_10m,
+        input_data.surface_pressure,
+        input_data.dew_point_2m,
+        input_data.apparent_temperature,
+        input_data.shortwave_radiation,
+        input_data.et0_fao_evapotranspiration,
+        input_data.year,
+        input_data.month,
+        input_data.day,
+        input_data.hour,
+    ]
+
+    # Fast path: no scaler or no mismatch
+    expected_n = getattr(scaler, "n_features_in_", None)
+    if expected_n is None:
+        return np.array([base_values])
+
+    # If feature names are available, prefer name-aligned construction
+    feature_names = getattr(scaler, "feature_names_in_", None)
+    if feature_names is not None:
+        # Build a dictionary of available fields
+        input_dict: Dict[str, Any] = {
+            "co": input_data.co,
+            "no": input_data.no,
+            "no2": input_data.no2,
+            "o3": input_data.o3,
+            "so2": input_data.so2,
+            "pm2_5": input_data.pm2_5,
+            "pm10": input_data.pm10,
+            "nh3": input_data.nh3,
+            "temperature_2m": input_data.temperature_2m,
+            "relative_humidity_2m": input_data.relative_humidity_2m,
+            "precipitation": input_data.precipitation,
+            "wind_speed_10m": input_data.wind_speed_10m,
+            "wind_direction_10m": input_data.wind_direction_10m,
+            "surface_pressure": input_data.surface_pressure,
+            "dew_point_2m": input_data.dew_point_2m,
+            "apparent_temperature": input_data.apparent_temperature,
+            "shortwave_radiation": input_data.shortwave_radiation,
+            "et0_fao_evapotranspiration": input_data.et0_fao_evapotranspiration,
+            "year": input_data.year,
+            "month": input_data.month,
+            "day": input_data.day,
+            "hour": input_data.hour,
+        }
+
+        # Engineered datetime-based features if model expects them
+        try:
+            dt = datetime(input_data.year, input_data.month, input_data.day, input_data.hour)
+            engineered: Dict[str, Any] = {
+                "day_of_week": float(dt.weekday()),
+                "is_weekend": float(1 if dt.weekday() >= 5 else 0),
+            }
+        except Exception:
+            engineered = {}
+
+        # Construct aligned vector
+        values: List[float] = []
+        missing: List[str] = []
+        for name in list(feature_names):
+            if name in input_dict:
+                values.append(float(input_dict[name]))
+            elif name in engineered:
+                values.append(float(engineered[name]))
+            elif str(name).lower().startswith("unnamed") or str(name).lower() in {"index", "idx"}:
+                values.append(0.0)
+            else:
+                # Keep track of truly missing features
+                missing.append(str(name))
+                values.append(np.nan)  # placeholder to keep shape
+
+        if missing:
+            # If everything else fits except a single suspicious column, try zero-fill
+            unresolved = [m for m in missing if not (m.lower().startswith("unnamed") or m.lower() in {"index", "idx"})]
+            if unresolved:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "message": "Prediction request missing required features for the trained model.",
+                        "expected_features": list(map(str, feature_names)),
+                        "missing_features": unresolved,
+                        "hint": "If these are date-derived (e.g., day_of_week/is_weekend), they are auto-computed from year/month/day/hour. Otherwise, retrain model without extraneous columns or provide these values.",
+                    },
+                )
+
+        return np.array([values], dtype=float)
+
+    # No feature names available. Handle common off-by-one due to stray index column.
+    if expected_n == len(base_values) + 1:
+        # Prepend a dummy zero assuming an accidental index column existed during training
+        return np.array([[0.0] + base_values], dtype=float)
+
+    if expected_n != len(base_values):
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Feature count mismatch",
+                "provided_count": len(base_values),
+                "expected_count": int(expected_n),
+                "hint": "Model expects a different number of input features. If trained with a DataFrame, ensure you dropped any index/Unnamed columns or expose feature names via scaler.feature_names_in_.",
+            },
+        )
+
+    return np.array([base_values], dtype=float)
+
+
 # ==================== ENDPOINTS ====================
 @app.get("/")
 async def root():
@@ -274,35 +406,8 @@ async def predict(input_data: PredictionInput):
             error_counter.labels(error_type="model_not_loaded").inc()
             raise HTTPException(status_code=503, detail="Model or scaler not loaded")
 
-        # Prepare input features
-        features = np.array(
-            [
-                [
-                    input_data.co,
-                    input_data.no,
-                    input_data.no2,
-                    input_data.o3,
-                    input_data.so2,
-                    input_data.pm2_5,
-                    input_data.pm10,
-                    input_data.nh3,
-                    input_data.temperature_2m,
-                    input_data.relative_humidity_2m,
-                    input_data.precipitation,
-                    input_data.wind_speed_10m,
-                    input_data.wind_direction_10m,
-                    input_data.surface_pressure,
-                    input_data.dew_point_2m,
-                    input_data.apparent_temperature,
-                    input_data.shortwave_radiation,
-                    input_data.et0_fao_evapotranspiration,
-                    input_data.year,
-                    input_data.month,
-                    input_data.day,
-                    input_data.hour,
-                ]
-            ]
-        )
+        # Build aligned feature vector based on scaler expectations
+        features = _build_feature_vector(input_data)
 
         # Scale features
         features_scaled = scaler.transform(features)
@@ -346,12 +451,20 @@ async def model_info():
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
-    return {
+    # Try to expose expected feature metadata for debugging
+    feature_names = getattr(scaler, "feature_names_in_", None)
+    n_features = int(getattr(scaler, "n_features_in_", 22))
+
+    info = {
         "model_version": model_version,
         "model_type": type(model).__name__,
         "loaded": True,
-        "features_expected": 22,
+        "features_expected": n_features,
     }
+    if feature_names is not None:
+        info["feature_names_in"] = list(map(str, feature_names))
+
+    return info
 
 
 @app.get("/predictions/latest", response_model=PredictionResultsResponse)
