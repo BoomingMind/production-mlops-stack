@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+mlruns/
+mlflow-artifacts/
+notebooks/
+data/
+*.ipynb
+*.csv
+*.pkl
+*.png
+*.jpg
+*.json
+!requirements.txt
+!src/**/*.py
+
+# Git
+.git/
+.gitignore
+
+# Docker
+.dockerignore
+docker-compose.yml
+Dockerfile
+
+# Documentation
+docs/
+README.md
+*.md
+
+# Testing
+tests/
+.pytest_cache/
+
+# Monitoring configs (already in volumes)
+monitoring/
+scripts/
+Makefile
+test_*.py
