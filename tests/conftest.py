@@ -4,6 +4,9 @@ Test configuration and fixtures
 import pytest
 import os
 import sys
+from unittest.mock import Mock, patch
+
+from fastapi.testclient import TestClient
 
 # Add src directory to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -42,3 +45,44 @@ def sample_prediction_input():
         "day": 30,
         "hour": 14,
     }
+
+
+# Global fixtures to be reused across test modules
+@pytest.fixture
+def mock_model():
+    """Mock ML model returning two outputs to satisfy response_model."""
+    model = Mock()
+    # Two-output shape: [aqi_index, calculated_aqi]
+    model.predict = Mock(return_value=[[42.0, 100.0]])
+    return model
+
+
+@pytest.fixture
+def mock_scaler():
+    """Mock scaler with a simple transform passthrough of correct shape."""
+    scaler = Mock()
+    # Return a 2D array with 22 features scaled
+    scaler.transform = Mock(return_value=[[0.5] * 22])
+    # Provide attributes used by code under test
+    scaler.n_features_in_ = 22
+    scaler.feature_names_in_ = None
+    return scaler
+
+
+@pytest.fixture
+def client(mock_model, mock_scaler):
+    """Create a FastAPI TestClient with S3 and joblib patched, globals set."""
+    with patch("src.api.main.boto3.client"):
+        with patch("src.api.main.joblib.load") as mock_joblib:
+            mock_joblib.side_effect = [mock_model, mock_scaler]
+
+            import src.api.main as main_module
+
+            # Ensure globals are set for endpoints that check them
+            main_module.model = mock_model
+            main_module.scaler = mock_scaler
+
+            from src.api.main import app
+
+            with TestClient(app) as test_client:
+                yield test_client
