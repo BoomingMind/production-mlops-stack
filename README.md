@@ -36,7 +36,7 @@ This project implements an end-to-end machine learning pipeline that:
 -  Serves predictions via **FastAPI**
 -  Containerized with **Docker**
 -  Automated CI/CD with **GitHub Actions**
--  **✅ Deployed on AWS EC2 with full production stack**
+-  ** Deployed on AWS EC2 with full production stack**
 
 ---
 
@@ -248,11 +248,9 @@ AWS_SECRET_ACCESS_KEY=your_secret_key
 # Automatically handled by notebooks/01_data_fetch_hourly.ipynb
 ```
 
-### Cloud Deployment (EC2) — Production Deployment
+### Cloud Deployment (EC2) — Deployment Attempt & Learning
 
-**Live API**: [https://56.228.29.122/](https://56.228.29.122/)
-
-This project has been successfully deployed on Amazon EC2 with the following production setup:
+**Note**: During the deployment process on EC2 instance (56.228.29.122), all infrastructure and configurations were successfully set up. However, when executing `docker-compose up -d --build`, the instance ran out of memory before the containers could fully start. This section documents the complete setup process that was performed.
 
 #### Deployment Architecture
 
@@ -380,14 +378,29 @@ sudo systemctl start mlops.service
 
 #### Production Endpoints
 
+**Status**: ⚠️ Deployment incomplete due to memory constraints
+
 | Service | URL | Status |
 |---------|-----|--------|
-| **API** | https://56.228.29.122/ |  Live |
-| **API Docs** | https://56.228.29.122/docs |  Live |
-| **Health Check** | https://56.228.29.122/health |  Live |
-| **MLflow UI** | http://56.228.29.122:5000 |  Live |
-| **Prometheus** | http://56.228.29.122:9090 |  Live |
-| **Grafana** | http://56.228.29.122:3000 |  Live |
+| **API** | https://56.228.29.122/ |  Not Running (Memory Issue) |
+| **API Docs** | https://56.228.29.122/docs |  Not Running (Memory Issue) |
+| **Health Check** | https://56.228.29.122/health |  Not Running (Memory Issue) |
+| **MLflow UI** | http://56.228.29.122:5000 |  Not Running (Memory Issue) |
+| **Prometheus** | http://56.228.29.122:9090 |  Not Running (Memory Issue) |
+| **Grafana** | http://56.228.29.122:3000 |  Not Running (Memory Issue) |
+
+**What Happened**:
+- All prerequisites (Docker, Docker Compose, Git) were successfully installed 
+- Repository was cloned and `.env` file configured 
+- Security group rules were properly set up 
+- When running `sudo docker compose up -d --build`, the instance memory filled up 
+- Services could not start due to insufficient resources 
+
+**Lessons Learned**:
+1. **t2.medium (4GB RAM) is insufficient** for running all services simultaneously (API + MLflow + Prometheus + Grafana + Evidently)
+2. **Recommended instance**: t2.large (8GB RAM) or t2.xlarge (16GB RAM)
+3. **Alternative**: Use managed services for some components (e.g., AWS ECS for API, managed Prometheus)
+4. **Memory optimization**: Could deploy only critical services (API + MLflow) and skip monitoring stack
 
 #### Testing the Deployment
 
