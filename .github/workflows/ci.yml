@@ -229,6 +229,24 @@ jobs:
         run: |
           docker stop aqi-canary || true
           docker rm aqi-canary || true
+      
+      - name: Download model artifacts from S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          echo "Installing AWS CLI..."
+          pip install awscli
+          
+          echo "Creating models directory..."
+          mkdir -p ./models
+          
+          echo "Downloading model artifacts from S3..."
+          aws s3 cp s3://my-feature-store-data/models/best_model.pkl ./models/best_model.pkl
+          aws s3 cp s3://my-feature-store-data/models/scaler.pkl ./models/scaler.pkl
+          
+          echo "Model artifacts downloaded successfully"
+          ls -lh ./models/
           
       - name: Deploy to Canary environment
         env:
@@ -239,16 +257,33 @@ jobs:
           docker run -d \
             --name aqi-canary \
             -p 8001:8000 \
+            -v $(pwd)/models:/app/models:ro \
             -e CANARY=true \
+            -e MODEL_PATH=/app/models/best_model.pkl \
+            -e SCALER_PATH=/app/models/scaler.pkl \
             -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
             -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
             $REGISTRY/$IMAGE_NAME_LC:${{ github.sha }}
             
       - name: Wait for canary to be ready
         run: |
-          echo "Waiting for canary service to start..."
-          timeout 60 bash -c 'until curl -f http://localhost:8001/health; do sleep 2; done'
-          echo "Canary service is ready!"
+          echo "Waiting for canary service to start and load models..."
+          sleep 5
+          
+          # Wait up to 90 seconds for the service to be healthy
+          timeout 90 bash -c 'until curl -f http://localhost:8001/health 2>/dev/null | grep -q "healthy\|degraded"; do 
+            echo "Service not ready yet, retrying..."; 
+            sleep 3; 
+          done'
+          
+          echo "Canary service is responding!"
+          
+          # Give it a bit more time to fully load models
+          sleep 5
+          
+          echo "Checking health status..."
+          curl -s http://localhost:8001/health | python3 -m json.tool || true
+          echo "Canary is ready for testing!"
           
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
