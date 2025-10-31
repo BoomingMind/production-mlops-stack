@@ -7,9 +7,9 @@ This document captures team member details, task ownership, branching convention
 | Name | ERP/Student ID | Role | Contact |
 |------|-----------------|------|---------|
 | Abdullah Iqbal | 26904 | Pipelines (CI/CD), Data Ingestion & Preprocessing | a.iqbal.26904@khi.iba.edu.pk |
-| Hussain Ali Shah | <ERP-ID> | API Development (FastAPI) | <email/handle> |
-| Haseeb Ahmed | 26077 | Model Training & Prediction | <email/handle> |
-| Fatima Naeem | <ERP-ID> | Dockerization | <email/handle> |
+| Hussain Ali Shah | 27131 | API Development (FastAPI) | h.shah.27131@khi.iba.edu |
+| Haseeb Ahmed | 26077 | Model Training & Prediction | h.ahmed.26077@khi.iba.edu.pk |
+| Fatima Naeem | 26933 | Dockerization | f.naeem.26933@khi.iba.edu.pk |
 
 
 ## Task Mapping (Who did what)
@@ -18,31 +18,36 @@ This document captures team member details, task ownership, branching convention
 |------|-------|-------|
 | Data Preparation | Data fetching, cleaning/preprocessing, basic EDA, feature engineering | Abdullah Iqbal |
 | Model Training | Model development, training/tuning, validation, prediction pipeline | Haseeb Ahmed |
-| Inference API | FastAPI service, endpoints, input/output schema | Hussain Ali Shah |
+| Inference API | FastAPI service, endpoints, input/output schema, testing | Hussain Ali Shah |
 | CI/CD Pipelines | Automated workflows for lint, tests, coverage, Docker build/push, deploy | Abdullah Iqbal |
 | Dockerization | Dockerfile, docker-compose, image optimization | Fatima Naeem |
-| Monitoring | Prometheus metrics, Grafana dashboards, Evidently drift | — (TBD) |
-| Cloud | S3/EC2/Lambda/CloudWatch (if used) | — (TBD) |
+| Monitoring - Evidently | Evidently drift detection, data quality reports | Haseeb Ahmed |
+| Monitoring - Prometheus/Grafana | Prometheus metrics, Grafana dashboards, monitoring setup | Fatima Naeem |
+| Cloud Infrastructure | S3/EC2/Lambda/CloudWatch integration and deployment | Hussain Ali Shah |
+| Documentation | README, API docs, implementation summaries | Abdullah Iqbal |
+| Testing & Quality | Unit tests, integration tests, code coverage | Fatima Naeem |
 
 ## Branch Naming Convention
 
 Follow short, consistent prefixes:
 
-- `feat/<short-description>` — New features or endpoints
-- `fix/<short-description>` — Bug fixes
-- `infra/<short-description>` — CI/CD, Docker, Makefile, provisioning
-- `docs/<short-description>` — Documentation only
-- `chore/<short-description>` — Misc chores (no functional change)
+- `feat/data-fetching` — New features or endpoints
+- `feat/data-processing` — Bug fixes
+- `feat/evidently-dashboard` — CI/CD, Docker, Makefile, provisioning
+- `feat/fast-api` — Documentation only
+- `feat/model-training` — Misc chores (no functional change)
 
-Examples:
-- `feat/predictions-by-date`
-- `fix/metrics-latency-labels`
-- `infra/ghcr-publish`
 
 ### Branches used in this project
 - `feat/fast-api` — API development (Hussain Ali Shah)
 - `feat/model-training` — Model training and prediction (Haseeb Ahmed)
-> If additional branches were used (e.g., for CI/CD or Dockerization), list them here as well (e.g., `infra/ci-cd`, `infra/dockerization`).
+- `feat/data-fetching` — Data fetching and ingestion (Abdullah Iqbal)
+- `feat/data-processing` — Data preprocessing and cleaning (Abdullah Iqbal)
+- `feat/evidently-dashboard` — Evidently monitoring setup (Haseeb Ahmed)
+- `feat/prometheus-grafana-setup` — Prometheus/Grafana monitoring (Fatima Naeem)
+- `feat/test-scripts` — Testing infrastructure (Fatima Naeem)
+- `automated-pipeline` — CI/CD automation (Abdullah Iqbal)
+- `dockerization` — Docker containerization (Fatima Naeem)
 
 ## Commit Message Style
 

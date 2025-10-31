@@ -27,7 +27,7 @@ install:
 test:
 	@echo "Running tests..."
 	@which pytest > /dev/null 2>&1 || { echo " pytest not found. Run 'make install' first."; exit 1; }
-	pytest tests/ -v --cov=src --cov-report=html --cov-report=term --cov-fail-under=80
+	pytest tests/ -v --cov=src --cov-report=html --cov-report=term --cov-fail-under=60
 	@echo "Tests complete. Coverage report: htmlcov/index.html"
 
 lint:

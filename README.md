@@ -24,7 +24,9 @@ _Production-ready pipeline to predict AQI from weather data with experiment trac
 
 ## Overview
 
-**Elevator Pitch:** Real-time AQI prediction system leveraging weather data with production-grade MLOps practices including experiment tracking, data drift monitoring, and comprehensive observability.
+**🌐 Live Production API**: [https://56.228.29.122/](https://56.228.29.122/)
+
+**Elevator Pitch:** Real-time AQI prediction system leveraging weather data with production-grade MLOps practices including experiment tracking, data drift monitoring, and comprehensive observability. **Now deployed and running in production on AWS EC2!**
 
 This project implements an end-to-end machine learning pipeline that:
 -  Fetches weather and AQI data from APIs and stores in AWS S3
@@ -34,12 +36,23 @@ This project implements an end-to-end machine learning pipeline that:
 -  Serves predictions via **FastAPI**
 -  Containerized with **Docker**
 -  Automated CI/CD with **GitHub Actions**
+-  **✅ Deployed on AWS EC2 with full production stack**
 
 ---
 
 ##  Quick Start
 
-### TL;DR
+### 🚀 Try It Live
+
+**Production API**: [https://56.228.29.122/](https://56.228.29.122/)  
+**API Documentation**: [https://56.228.29.122/docs](https://56.228.29.122/docs)
+
+Test the live API:
+```bash
+curl https://56.228.29.122/health
+```
+
+### TL;DR - Local Development
 
 macOS/Linux (bash/zsh):
 ```bash
@@ -235,35 +248,248 @@ AWS_SECRET_ACCESS_KEY=your_secret_key
 # Automatically handled by notebooks/01_data_fetch_hourly.ipynb
 ```
 
-### Cloud Deployment (EC2) — How to Reproduce
+### Cloud Deployment (EC2) — Production Deployment
 
-This project can be deployed on an EC2 instance and connect to S3 for model/artifact storage.
+**Live API**: [https://56.228.29.122/](https://56.228.29.122/)
 
-1) Provision EC2:
-- Choose Ubuntu 22.04 (t2.medium or above recommended)
-- Open ports: 22 (SSH), 8000 (API), 3000 (Grafana), 5000 (MLflow), 9090 (Prometheus)
+This project has been successfully deployed on Amazon EC2 with the following production setup:
 
-2) Install Docker & Docker Compose:
-- Install Docker Engine and enable `docker compose` plugin.
+#### Deployment Architecture
 
-3) Configure environment:
-- Set the following environment variables (or use `.env`):
-  - `AWS_ACCESS_KEY_ID`
-  - `AWS_SECRET_ACCESS_KEY`
+```
+Internet → EC2 Instance (56.228.29.122)
+├── FastAPI Application (Port 8000)
+├── MLflow Server (Port 5000)
+├── Prometheus (Port 9090)
+├── Grafana (Port 3000)
+└── S3 Bucket (my-feature-store-data)
+    ├── Models
+    ├── Artifacts
+    └── Data
+```
 
-4) Run services:
-- `docker compose up -d`
-- Verify MLflow at `http://<EC2_PUBLIC_IP>:5000`
-- Verify API at `http://<EC2_PUBLIC_IP>:8000/health`
+#### Step-by-Step Deployment Guide
 
-5) Observability:
-- Prometheus: `http://<EC2_PUBLIC_IP>:9090`
-- Grafana: `http://<EC2_PUBLIC_IP>:3000` (admin/admin)
+**1. Provision EC2 Instance**
+```bash
+# Instance Configuration
+- AMI: Ubuntu 22.04 LTS
+- Instance Type: t2.medium (2 vCPU, 4GB RAM)
+- Storage: 30GB EBS (gp3)
+- Public IP: 56.228.29.122
+```
 
-6) Model Registry (MLflow):
-- Tracking URI: `http://<EC2_PUBLIC_IP>:5000`
-- Register best model as `aqi-model` and promote to `Production` (v1).
-- Link: Add a screenshot of the registered model (see below).
+**2. Configure Security Group**
+```bash
+# Inbound Rules
+- SSH (22): Your IP / VPN
+- HTTP (80): 0.0.0.0/0
+- HTTPS (443): 0.0.0.0/0
+- Custom TCP (8000): 0.0.0.0/0  # FastAPI
+- Custom TCP (5000): 0.0.0.0/0  # MLflow
+- Custom TCP (3000): 0.0.0.0/0  # Grafana
+- Custom TCP (9090): 0.0.0.0/0  # Prometheus
+```
+
+**3. SSH into EC2 and Install Dependencies**
+```bash
+# Connect to EC2
+ssh -i your-key.pem ubuntu@56.228.29.122
+
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker ubuntu
+
+# Install Docker Compose
+sudo apt install docker-compose-plugin -y
+
+# Install Git
+sudo apt install git -y
+```
+
+**4. Clone and Configure Application**
+```bash
+# Clone repository
+git clone https://github.com/AbdullahIqbal26904/MLOPS_Project.git
+cd MLOPS_Project
+
+# Create and configure .env file
+nano .env
+# Add the following:
+# AWS_ACCESS_KEY_ID=your_access_key
+# AWS_SECRET_ACCESS_KEY=your_secret_key
+# AWS_DEFAULT_REGION=us-east-1
+# MLFLOW_TRACKING_URI=http://localhost:5000
+```
+
+**5. Deploy Services with Docker Compose**
+```bash
+# Build and start all services
+sudo docker compose up -d --build
+
+# Verify services are running
+sudo docker compose ps
+
+# Check logs
+sudo docker compose logs -f
+```
+
+**6. Configure HTTPS with Nginx (Optional)**
+```bash
+# Install Nginx
+sudo apt install nginx -y
+
+# Configure reverse proxy for HTTPS
+sudo nano /etc/nginx/sites-available/mlops
+
+# Add SSL certificate (Let's Encrypt)
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d yourdomain.com
+```
+
+**7. Setup Systemd Service for Auto-restart**
+```bash
+# Create systemd service
+sudo nano /etc/systemd/system/mlops.service
+
+# Add:
+[Unit]
+Description=MLOps Docker Compose Application
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/ubuntu/MLOPS_Project
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+
+# Enable and start service
+sudo systemctl enable mlops.service
+sudo systemctl start mlops.service
+```
+
+#### Production Endpoints
+
+| Service | URL | Status |
+|---------|-----|--------|
+| **API** | https://56.228.29.122/ |  Live |
+| **API Docs** | https://56.228.29.122/docs |  Live |
+| **Health Check** | https://56.228.29.122/health |  Live |
+| **MLflow UI** | http://56.228.29.122:5000 |  Live |
+| **Prometheus** | http://56.228.29.122:9090 |  Live |
+| **Grafana** | http://56.228.29.122:3000 |  Live |
+
+#### Testing the Deployment
+
+```bash
+# Health check
+curl https://56.228.29.122/health
+
+# Make a prediction
+curl -X POST "https://56.228.29.122/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "co": 250.5,
+    "no": 0.5,
+    "no2": 12.3,
+    "o3": 45.6,
+    "so2": 7.8,
+    "pm2_5": 25.4,
+    "pm10": 40.2,
+    "nh3": 3.2,
+    "temperature_2m": 28.5,
+    "relative_humidity_2m": 65.0,
+    "precipitation": 0.0,
+    "wind_speed_10m": 5.2,
+    "wind_direction_10m": 180.0,
+    "surface_pressure": 1013.25,
+    "dew_point_2m": 20.3,
+    "apparent_temperature": 30.1,
+    "shortwave_radiation": 500.0,
+    "et0_fao_evapotranspiration": 0.25,
+    "year": 2025,
+    "month": 10,
+    "day": 22,
+    "hour": 14
+  }'
+```
+
+#### Monitoring and Maintenance
+
+```bash
+# View application logs
+sudo docker compose logs -f api
+
+# Restart services
+sudo docker compose restart
+
+# Update application
+git pull origin main
+sudo docker compose up -d --build
+
+# Check resource usage
+htop
+sudo docker stats
+
+# Backup data
+aws s3 sync ./data s3://my-feature-store-data/backups/
+```
+
+#### Cost Optimization
+
+- **EC2 Instance**: ~$30/month (t2.medium)
+- **S3 Storage**: ~$2-5/month (depending on data volume)
+- **Data Transfer**: Minimal (API responses are small)
+- **Total**: ~$35-40/month
+
+**Optimization Tips**:
+- Use Reserved Instances for 30-50% savings
+- Enable S3 Intelligent-Tiering for archival data
+- Use CloudWatch alarms to stop instance during low-traffic hours
+- Consider AWS Lightsail for simpler workloads
+
+#### Troubleshooting
+
+**Issue: Services not starting**
+```bash
+# Check Docker status
+sudo systemctl status docker
+
+# Rebuild containers
+sudo docker compose down
+sudo docker compose up -d --build
+```
+
+**Issue: Cannot access API**
+```bash
+# Check security group rules
+# Verify port 8000 is open to 0.0.0.0/0
+
+# Check if service is listening
+sudo netstat -tulpn | grep 8000
+```
+
+**Issue: Out of memory**
+```bash
+# Check memory usage
+free -h
+
+# Increase swap space
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
 
 ---
 
