@@ -41,31 +41,46 @@ async def lifespan(app: FastAPI):
     global model, scaler, model_version
 
     try:
-        bucket_name = "my-feature-store-data"
-        model_key = "models/best_model.pkl"
-        scaler_key = "models/scaler.pkl"
+        # Check if local model paths are provided (for containerized deployments)
+        model_path = os.getenv("MODEL_PATH")
+        scaler_path = os.getenv("SCALER_PATH")
+        
+        if model_path and scaler_path and os.path.exists(model_path) and os.path.exists(scaler_path):
+            # Load from local files
+            print(f"Loading model from local file: {model_path}")
+            model = joblib.load(model_path)
+            print("Model loaded successfully from local file")
+            
+            print(f"Loading scaler from local file: {scaler_path}")
+            scaler = joblib.load(scaler_path)
+            print("Scaler loaded successfully from local file")
+        else:
+            # Load from S3 (default behavior)
+            bucket_name = "my-feature-store-data"
+            model_key = "models/best_model.pkl"
+            scaler_key = "models/scaler.pkl"
 
-        s3 = boto3.client(
-            "s3",
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-        )
+            s3 = boto3.client(
+                "s3",
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            )
 
-        # Download model
-        print("Loading model from S3...")
-        model_buffer = BytesIO()
-        s3.download_fileobj(bucket_name, model_key, model_buffer)
-        model_buffer.seek(0)
-        model = joblib.load(model_buffer)
-        print("Model loaded successfully")
+            # Download model
+            print("Loading model from S3...")
+            model_buffer = BytesIO()
+            s3.download_fileobj(bucket_name, model_key, model_buffer)
+            model_buffer.seek(0)
+            model = joblib.load(model_buffer)
+            print("Model loaded successfully from S3")
 
-        # Download scaler
-        print("Loading scaler from S3...")
-        scaler_buffer = BytesIO()
-        s3.download_fileobj(bucket_name, scaler_key, scaler_buffer)
-        scaler_buffer.seek(0)
-        scaler = joblib.load(scaler_buffer)
-        print("Scaler loaded successfully")
+            # Download scaler
+            print("Loading scaler from S3...")
+            scaler_buffer = BytesIO()
+            s3.download_fileobj(bucket_name, scaler_key, scaler_buffer)
+            scaler_buffer.seek(0)
+            scaler = joblib.load(scaler_buffer)
+            print("Scaler loaded successfully from S3")
 
         load_duration = time.time() - start_time
         model_load_time.set(load_duration)
