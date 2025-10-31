@@ -313,151 +313,23 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+          cache: 'pip'
           
       - name: Install test dependencies
         run: |
-          pip install requests pytest
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
           
-      - name: Create acceptance test script
+      - name: Run integration tests against canary
+        env:
+          API_BASE_URL: http://localhost:8001
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          cat > acceptance_tests.py << 'EOF'
-          import requests
-          import sys
-          
-          BASE_URL = "http://localhost:8001"
-          
-          # Golden test set with 5+ queries
-          test_cases = [
-              {
-                  "name": "Health Check",
-                  "method": "GET",
-                  "endpoint": "/health",
-                  "data": None
-              },
-              {
-                  "name": "Root Endpoint",
-                  "method": "GET",
-                  "endpoint": "/",
-                  "data": None
-              },
-              {
-                  "name": "Model Info",
-                  "method": "GET",
-                  "endpoint": "/model/info",
-                  "data": None
-              },
-              {
-                  "name": "Prediction - Good Air Quality",
-                  "method": "POST",
-                  "endpoint": "/predict",
-                  "data": {
-                      "co": 200.0, "no": 0.1, "no2": 10.0, "o3": 40.0, "so2": 5.0,
-                      "pm2_5": 15.0, "pm10": 30.0, "nh3": 2.0, "temperature_2m": 25.0,
-                      "relative_humidity_2m": 60.0, "precipitation": 0.0,
-                      "wind_speed_10m": 5.0, "wind_direction_10m": 180.0,
-                      "surface_pressure": 1013.0, "dew_point_2m": 18.0,
-                      "apparent_temperature": 26.0, "shortwave_radiation": 400.0,
-                      "et0_fao_evapotranspiration": 0.2, "year": 2025, "month": 10,
-                      "day": 30, "hour": 12
-                  }
-              },
-              {
-                  "name": "Prediction - Moderate Air Quality",
-                  "method": "POST",
-                  "endpoint": "/predict",
-                  "data": {
-                      "co": 300.0, "no": 1.0, "no2": 20.0, "o3": 60.0, "so2": 10.0,
-                      "pm2_5": 35.0, "pm10": 60.0, "nh3": 5.0, "temperature_2m": 28.0,
-                      "relative_humidity_2m": 70.0, "precipitation": 0.0,
-                      "wind_speed_10m": 3.0, "wind_direction_10m": 90.0,
-                      "surface_pressure": 1010.0, "dew_point_2m": 22.0,
-                      "apparent_temperature": 30.0, "shortwave_radiation": 500.0,
-                      "et0_fao_evapotranspiration": 0.3, "year": 2025, "month": 10,
-                      "day": 30, "hour": 14
-                  }
-              },
-              {
-                  "name": "Prediction - Poor Air Quality",
-                  "method": "POST",
-                  "endpoint": "/predict",
-                  "data": {
-                      "co": 500.0, "no": 2.0, "no2": 40.0, "o3": 100.0, "so2": 20.0,
-                      "pm2_5": 75.0, "pm10": 150.0, "nh3": 10.0, "temperature_2m": 32.0,
-                      "relative_humidity_2m": 80.0, "precipitation": 0.0,
-                      "wind_speed_10m": 1.0, "wind_direction_10m": 0.0,
-                      "surface_pressure": 1008.0, "dew_point_2m": 26.0,
-                      "apparent_temperature": 35.0, "shortwave_radiation": 600.0,
-                      "et0_fao_evapotranspiration": 0.4, "year": 2025, "month": 10,
-                      "day": 30, "hour": 16
-                  }
-              }
-          ]
-          
-          failed = 0
-          passed = 0
-          
-          print("=" * 70)
-          print("Running Acceptance Tests on Canary Environment")
-          print("=" * 70)
-          
-          for i, test in enumerate(test_cases, 1):
-              print(f"\nTest {i}/{len(test_cases)}: {test['name']}")
-              try:
-                  if test['method'] == 'GET':
-                      response = requests.get(f"{BASE_URL}{test['endpoint']}", timeout=15)
-                  else:
-                      response = requests.post(f"{BASE_URL}{test['endpoint']}", json=test['data'], timeout=15)
-                  
-                  # Special handling for prediction endpoints if model not loaded
-                  if test['endpoint'] == '/predict' and response.status_code == 503:
-                      print(f"  SKIP - Model not loaded (Status: {response.status_code})")
-                      print(f"  Response: {response.text}")
-                      continue
-                  
-                  if response.status_code == 200:
-                      print(f"  PASS - Status: {response.status_code}")
-                      if test['endpoint'] == '/health':
-                          # Show health status for debugging
-                          health_data = response.json()
-                          print(f"  Health Status: {health_data.get('status', 'unknown')}")
-                          print(f"  Model Loaded: {health_data.get('model_loaded', False)}")
-                      passed += 1
-                  else:
-                      print(f"  FAIL - Status: {response.status_code}")
-                      print(f"  Response: {response.text}")
-                      failed += 1
-              except Exception as e:
-                  print(f"  FAIL - Error: {str(e)}")
-                  failed += 1
-          
-          print("\n" + "=" * 70)
-          print(f"Results: {passed} passed, {failed} failed out of {len(test_cases)} tests")
-          print("=" * 70)
-          
-          # Check if at least basic endpoints are working
-          if failed > 0:
-              # Allow some failures if they're prediction-related and model isn't loaded
-              critical_endpoints_failed = False
-              for i, test in enumerate(test_cases):
-                  if test['endpoint'] in ['/health', '/'] and i < len(test_cases):
-                      # These are critical - if they fail, we should fail the build
-                      pass
-              
-              if failed >= len(test_cases) // 2:  # If more than half failed
-                  print("Too many acceptance tests FAILED!")
-                  sys.exit(1)
-              else:
-                  print("Some tests failed but core functionality works. Proceeding...")
-          else:
-              print("All acceptance tests PASSED!")
-              
-          sys.exit(0)
-          EOF
-          
-      - name: Run acceptance tests
-        run: |
-          echo "Running acceptance tests against canary..."
-          python acceptance_tests.py
+          echo "Running pytest integration tests against canary deployment..."
+          echo "Testing real deployed container with actual models loaded from S3"
+          pytest tests/test_integration.py -v --tb=short --color=yes
+        continue-on-error: false
           
       - name: Cleanup canary container
         if: always()
@@ -469,7 +341,7 @@ jobs:
         if: success()
         run: |
           echo "Canary deployment successful!"
-          echo "All acceptance tests passed! Ready for production."
+          echo "All integration tests passed! Ready for production."
 
   # ==================== JOB 6: PROMOTE TO PRODUCTION ====================
   promote-to-production:
