@@ -200,9 +200,9 @@ jobs:
           echo "Docker image built and pushed successfully!"
           echo "Image tags: ${{ steps.meta.outputs.tags }}"
 
-  # ==================== JOB 5: CANARY DEPLOYMENT ====================
-  canary-deploy:
-    name: Deploy to Canary Environment
+  # ==================== JOB 5: CANARY DEPLOYMENT & ACCEPTANCE TESTS ====================
+  canary-deploy-and-test:
+    name: Deploy to Canary & Run Acceptance Tests
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -250,22 +250,6 @@ jobs:
           timeout 60 bash -c 'until curl -f http://localhost:8001/health; do sleep 2; done'
           echo "Canary service is ready!"
           
-      - name: Canary deployment summary
-        run: |
-          echo "Canary deployment successful!"
-          echo "Canary URL: http://localhost:8001"
-
-  # ==================== JOB 6: ACCEPTANCE TESTS ====================
-  acceptance-tests:
-    name: Run Acceptance Tests on Canary
-    runs-on: ubuntu-latest
-    needs: canary-deploy
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
@@ -399,15 +383,17 @@ jobs:
           docker stop aqi-canary || true
           docker rm aqi-canary || true
           
-      - name: Acceptance test summary
+      - name: Deployment and test summary
         if: success()
-        run: echo "All acceptance tests passed! Canary deployment validated."
+        run: |
+          echo "Canary deployment successful!"
+          echo "All acceptance tests passed! Ready for production."
 
-  # ==================== JOB 7: PROMOTE TO PRODUCTION ====================
+  # ==================== JOB 6: PROMOTE TO PRODUCTION ====================
   promote-to-production:
     name: Promote to Production
     runs-on: ubuntu-latest
-    needs: acceptance-tests
+    needs: canary-deploy-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
