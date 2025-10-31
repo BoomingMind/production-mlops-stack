@@ -42,7 +42,9 @@ RUN addgroup --system app \
 
 # Only copy what we need
 COPY src/ ./src/
-COPY .env .env
+    # Do not bake secrets into the image; rely on environment variables at runtime
+    # If a local .env exists during development, python-dotenv will load it automatically
+    # COPY .env .env  <-- intentionally disabled to avoid CI failures and secret leakage
 
 # Use non-root user
 USER app
