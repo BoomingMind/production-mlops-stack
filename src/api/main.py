@@ -44,13 +44,18 @@ async def lifespan(app: FastAPI):
         # Check if local model paths are provided (for containerized deployments)
         model_path = os.getenv("MODEL_PATH")
         scaler_path = os.getenv("SCALER_PATH")
-        
-        if model_path and scaler_path and os.path.exists(model_path) and os.path.exists(scaler_path):
+
+        if (
+            model_path
+            and scaler_path
+            and os.path.exists(model_path)
+            and os.path.exists(scaler_path)
+        ):
             # Load from local files
             print(f"Loading model from local file: {model_path}")
             model = joblib.load(model_path)
             print("Model loaded successfully from local file")
-            
+
             print(f"Loading scaler from local file: {scaler_path}")
             scaler = joblib.load(scaler_path)
             print("Scaler loaded successfully from local file")
