@@ -2,10 +2,10 @@
 
 _Production-ready pipeline to predict AQI from weather data with experiment tracking, drift monitoring, and an inference API._
 
-[![MLOps](https://img.shields.io/badge/MLOps-Production-blue)](https://github.com)
-[![Python](https://img.shields.io/badge/Python-3.11-green)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104-teal)](https://fastapi.tiangolo.com)
-[![MLflow](https://img.shields.io/badge/MLflow-2.9-orange)](https://mlflow.org)
+[![MLOps](http://img.shields.io/badge/MLOps-Production-blue)](http://github.com)
+[![Python](http://img.shields.io/badge/Python-3.11-green)](http://python.org)
+[![FastAPI](http://img.shields.io/badge/FastAPI-0.104-teal)](http://fastapi.tiangolo.com)
+[![MLflow](http://img.shields.io/badge/MLflow-2.9-orange)](http://mlflow.org)
 
 > Production-ready MLOps pipeline for Air Quality Index (AQI) prediction using weather parameters with comprehensive monitoring and experiment tracking.
 
@@ -24,7 +24,7 @@ _Production-ready pipeline to predict AQI from weather data with experiment trac
 
 ## Overview
 
-**🌐 Live Production API**: [https://16.16.212.57:8000/](https://16.16.212.57:8000/)
+**🌐 Live Production API**: [http://16.16.212.57:8000/](http://16.16.212.57:8000/)
 
 **Elevator Pitch:** Real-time AQI prediction system leveraging weather data with production-grade MLOps practices including experiment tracking, data drift monitoring, and comprehensive observability. **Now deployed and running in production on AWS EC2!**
 
@@ -44,24 +44,24 @@ This project implements an end-to-end machine learning pipeline that:
 
 ### 🚀 Try It Live
 
-**Production API**: [https://16.16.212.57:8000/](https://16.16.212.57:8000/)  
-**API Documentation**: [https://16.16.212.57:8000/docs](https://16.16.212.57:8000/docs)
+**Production API**: [http://16.16.212.57:8000/](http://16.16.212.57:8000/)  
+**API Documentation**: [http://16.16.212.57:8000/docs](http://16.16.212.57:8000/docs)
 
 Test the live API:
 ```bash
-curl https://16.16.212.57:8000/health
+curl http://16.16.212.57:8000/health
 ```
 
 ### TL;DR - Local Development
 
 macOS/Linux (bash/zsh):
 ```bash
-git clone https://github.com/AbdullahIqbal26904/MLOPS_Project.git && cd MLOPS_Project && make dev
+git clone http://github.com/AbdullahIqbal26904/MLOPS_Project.git && cd MLOPS_Project && make dev
 ```
 
 Windows (PowerShell):
 ```powershell
-git clone https://github.com/AbdullahIqbal26904/MLOPS_Project.git; cd MLOPS_Project; make dev
+git clone http://github.com/AbdullahIqbal26904/MLOPS_Project.git; cd MLOPS_Project; make dev
 ```
 
 ### Prerequisites
@@ -74,7 +74,7 @@ git clone https://github.com/AbdullahIqbal26904/MLOPS_Project.git; cd MLOPS_Proj
 
 ```bash
 # Clone the repository
-git clone https://github.com/AbdullahIqbal26904/MLOPS_Project.git
+git clone http://github.com/AbdullahIqbal26904/MLOPS_Project.git
 cd MLOPS_Project
 
 # Create virtual environment
@@ -281,7 +281,7 @@ Internet → EC2 Instance (16.16.212.57:8000/)
 # Inbound Rules
 - SSH (22): Your IP / VPN
 - HTTP (80): 0.0.0.0/0
-- HTTPS (443): 0.0.0.0/0
+- http (443): 0.0.0.0/0
 - Custom TCP (8000): 0.0.0.0/0  # FastAPI
 - Custom TCP (5000): 0.0.0.0/0  # MLflow
 - Custom TCP (3000): 0.0.0.0/0  # Grafana
@@ -297,7 +297,7 @@ ssh -i your-key.pem ubuntu@16.16.212.57:8000/
 sudo apt update && sudo apt upgrade -y
 
 # Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
+curl -fsSL http://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker ubuntu
 
@@ -311,7 +311,7 @@ sudo apt install git -y
 **4. Clone and Configure Application**
 ```bash
 # Clone repository
-git clone https://github.com/AbdullahIqbal26904/MLOPS_Project.git
+git clone http://github.com/AbdullahIqbal26904/MLOPS_Project.git
 cd MLOPS_Project
 
 # Create and configure .env file
@@ -335,12 +335,12 @@ sudo docker compose ps
 sudo docker compose logs -f
 ```
 
-**6. Configure HTTPS with Nginx (Optional)**
+**6. Configure http with Nginx (Optional)**
 ```bash
 # Install Nginx
 sudo apt install nginx -y
 
-# Configure reverse proxy for HTTPS
+# Configure reverse proxy for http
 sudo nano /etc/nginx/sites-available/mlops
 
 # Add SSL certificate (Let's Encrypt)
@@ -381,9 +381,9 @@ sudo systemctl start mlops.service
 
 | Service | URL | Status |
 |---------|-----|--------|
-| **API** | https://16.16.212.57:8000/ |  Not Running (Memory Issue) |
-| **API Docs** | https://16.16.212.57:8000/docs |  Not Running (Memory Issue) |
-| **Health Check** | https://16.16.212.57:8000/health |  Not Running (Memory Issue) |
+| **API** | http://16.16.212.57:8000/ |  Not Running (Memory Issue) |
+| **API Docs** | http://16.16.212.57:8000/docs |  Not Running (Memory Issue) |
+| **Health Check** | http://16.16.212.57:8000/health |  Not Running (Memory Issue) |
 | **MLflow UI** | http://16.16.212.57:8000/:5000 |  Not Running (Memory Issue) |
 | **Prometheus** | http://16.16.212.57:8000/:9090 |  Not Running (Memory Issue) |
 | **Grafana** | http://16.16.212.57:8000/:3000 |  Not Running (Memory Issue) |
@@ -405,10 +405,10 @@ sudo systemctl start mlops.service
 
 ```bash
 # Health check
-curl https://16.16.212.57:8000/health
+curl http://16.16.212.57:8000/health
 
 # Make a prediction
-curl -X POST "https://16.16.212.57:8000/predict" \
+curl -X POST "http://16.16.212.57:8000/predict" \
   -H "Content-Type: application/json" \
   -d '{
     "co": 250.5,
@@ -601,7 +601,7 @@ Prometheus metrics endpoint.
 - Stop conflicting apps, or change ports in `docker-compose.yml` and restart: `docker compose down && docker compose up -d`
 
 4) `pip install` fails with compiler errors on Windows (e.g., "Microsoft Visual C++ Build Tools" required)
-- Install Build Tools: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+- Install Build Tools: http://visualstudio.microsoft.com/visual-cpp-build-tools/
 - Or use prebuilt wheels where possible and ensure Python 3.11 is installed from python.org
 
 5) Virtual environment activation issues
@@ -656,4 +656,4 @@ See [CONTRIBUTION.md](CONTRIBUTION.md)
 ## Contact
 
 - **Team Lead**: Abdullah Iqbal
-- **Repository**: https://github.com/AbdullahIqbal26904/MLOPS_Project
+- **Repository**: http://github.com/AbdullahIqbal26904/MLOPS_Project
