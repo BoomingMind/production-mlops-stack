@@ -24,7 +24,7 @@ _Production-ready pipeline to predict AQI from weather data with experiment trac
 
 ## Overview
 
-**🌐 Live Production API**: [http://16.16.212.57:8000/](http://16.16.212.57:8000/)
+**🌐 Live Production API**: [http://13.50.100.228:8000/](http://13.50.100.228:8000/)
 
 **Elevator Pitch:** Real-time AQI prediction system leveraging weather data with production-grade MLOps practices including experiment tracking, data drift monitoring, and comprehensive observability. **Now deployed and running in production on AWS EC2!**
 
@@ -44,12 +44,12 @@ This project implements an end-to-end machine learning pipeline that:
 
 ### 🚀 Try It Live
 
-**Production API**: [http://16.16.212.57:8000/](http://16.16.212.57:8000/)  
-**API Documentation**: [http://16.16.212.57:8000/docs](http://16.16.212.57:8000/docs)
+**Production API**: [http://13.50.100.228:8000/](http://13.50.100.228:8000/)  
+**API Documentation**: [http://13.50.100.228:8000/docs](http://13.50.100.228:8000/docs)
 
 Test the live API:
 ```bash
-curl http://16.16.212.57:8000/health
+curl http://13.50.100.228:8000/health
 ```
 
 ### TL;DR - Local Development
@@ -254,7 +254,7 @@ AWS_SECRET_ACCESS_KEY=your_secret_key
 #### Deployment Architecture
 
 ```
-Internet → EC2 Instance (16.16.212.57:8000/)
+Internet → EC2 Instance (13.50.100.228:8000/)
 ├── FastAPI Application (Port 8000)
 ├── MLflow Server (Port 5000)
 ├── Prometheus (Port 9090)
@@ -273,7 +273,7 @@ Internet → EC2 Instance (16.16.212.57:8000/)
 - AMI: Ubuntu 22.04 LTS
 - Instance Type: t3.medium (2 vCPU, 4GB RAM)
 - Storage: 30GB EBS (gp3)
-- Public IP: 16.16.212.57:8000/
+- Public IP: 13.50.100.228:8000/
 ```
 
 **2. Configure Security Group**
@@ -291,7 +291,7 @@ Internet → EC2 Instance (16.16.212.57:8000/)
 **3. SSH into EC2 and Install Dependencies**
 ```bash
 # Connect to EC2
-ssh -i your-key.pem ubuntu@16.16.212.57:8000/
+ssh -i your-key.pem ubuntu@13.50.100.228:8000/
 
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -381,12 +381,12 @@ sudo systemctl start mlops.service
 
 | Service | URL | Status |
 |---------|-----|--------|
-| **API** | http://16.16.212.57:8000/ |  Not Running (Memory Issue) |
-| **API Docs** | http://16.16.212.57:8000/docs |  Not Running (Memory Issue) |
-| **Health Check** | http://16.16.212.57:8000/health |  Not Running (Memory Issue) |
-| **MLflow UI** | http://16.16.212.57:8000/:5000 |  Not Running (Memory Issue) |
-| **Prometheus** | http://16.16.212.57:8000/:9090 |  Not Running (Memory Issue) |
-| **Grafana** | http://16.16.212.57:8000/:3000 |  Not Running (Memory Issue) |
+| **API** | http://13.50.100.228:8000/ |  Not Running (Memory Issue) |
+| **API Docs** | http://13.50.100.228:8000/docs |  Not Running (Memory Issue) |
+| **Health Check** | http://13.50.100.228:8000/health |  Not Running (Memory Issue) |
+| **MLflow UI** | http://13.50.100.228:8000/:5000 |  Not Running (Memory Issue) |
+| **Prometheus** | http://13.50.100.228:8000/:9090 |  Not Running (Memory Issue) |
+| **Grafana** | http://13.50.100.228:8000/:3000 |  Not Running (Memory Issue) |
 
 **What Happened**:
 - All prerequisites (Docker, Docker Compose, Git) were successfully installed 
@@ -405,10 +405,10 @@ sudo systemctl start mlops.service
 
 ```bash
 # Health check
-curl http://16.16.212.57:8000/health
+curl http://13.50.100.228:8000/health
 
 # Make a prediction
-curl -X POST "http://16.16.212.57:8000/predict" \
+curl -X POST "http://13.50.100.228:8000/predict" \
   -H "Content-Type: application/json" \
   -d '{
     "co": 250.5,
