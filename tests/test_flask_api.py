@@ -2,7 +2,7 @@
 Unit tests for the Flask AQI Prediction API
 """
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 import sys
 import os
 import numpy as np
@@ -11,13 +11,22 @@ import pandas as pd
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+# Mock boto3 before importing the app module
+sys.modules['boto3'] = MagicMock()
+
+# Now import the app module
+import my_flask_app.app as app_module
 
 @pytest.fixture
 def mock_model():
     """Mock ML model for testing"""
     model = Mock()
     # Return predictions for both aqi_index and Calculated_AQI
-    model.predict = Mock(return_value=np.array([[45.5, 50.2]]))
+    # Use side_effect to return correct shape based on input
+    def predict_side_effect(X):
+        num_samples = X.shape[0]
+        return np.array([[45.5, 50.2]] * num_samples)
+    model.predict = Mock(side_effect=predict_side_effect)
     return model
 
 
@@ -25,45 +34,37 @@ def mock_model():
 def mock_scaler():
     """Mock scaler for testing"""
     scaler = Mock()
-    scaler.transform = Mock(return_value=np.array([[0.5] * 22]))
+    # Use side_effect to return correct shape based on input
+    def transform_side_effect(X):
+        if hasattr(X, 'shape'):
+            return np.array([[0.5] * X.shape[1]] * X.shape[0])
+        return np.array([[0.5] * 22])
+    scaler.transform = Mock(side_effect=transform_side_effect)
     return scaler
 
 
 @pytest.fixture
 def mock_df():
-    """Mock historical dataframe"""
-    # Create a simple dataframe with required columns
-    dates = pd.date_range(start="2024-01-01", periods=100, freq="h")
+    """Mock historical dataframe with all required columns"""
+    # Create a simple dataframe with all required columns including weather features
+    np.random.seed(42)  # For reproducibility
+    dates = pd.date_range(start="2024-01-01", periods=100, freq="H")
     df = pd.DataFrame(
         {
             "year": dates.year,
             "month": dates.month,
             "day": dates.day,
             "hour": dates.hour,
-            # Air quality components
-            "co": np.random.uniform(200, 1500, 100),
-            "no": np.random.uniform(0, 1, 100),
-            "no2": np.random.uniform(10, 60, 100),
-            "o3": np.random.uniform(20, 50, 100),
-            "so2": np.random.uniform(5, 15, 100),
-            "pm2_5": np.random.uniform(20, 80, 100),
-            "pm10": np.random.uniform(30, 120, 100),
-            "nh3": np.random.uniform(5, 15, 100),
-            # Weather features
             "temperature_2m": np.random.uniform(20, 35, 100),
             "relative_humidity_2m": np.random.uniform(40, 80, 100),
-            "precipitation": np.random.uniform(0, 5, 100),
+            "dew_point_2m": np.random.uniform(10, 25, 100),
             "wind_speed_10m": np.random.uniform(0, 10, 100),
             "wind_direction_10m": np.random.uniform(0, 360, 100),
             "surface_pressure": np.random.uniform(1000, 1020, 100),
-            "dew_point_2m": np.random.uniform(15, 25, 100),
-            "apparent_temperature": np.random.uniform(20, 35, 100),
-            "shortwave_radiation": np.random.uniform(0, 800, 100),
-            "et0_fao_evapotranspiration": np.random.uniform(0, 1, 100),
             "cloud_cover": np.random.uniform(0, 100, 100),
+            "precipitation": np.random.uniform(0, 5, 100),
             "rain": np.random.uniform(0, 5, 100),
-            "snowfall": np.random.uniform(0, 0, 100),
-            # Target columns
+            "snowfall": np.random.uniform(0, 1, 100),
             "aqi_index": np.random.uniform(30, 80, 100),
             "Calculated_AQI": np.random.uniform(30, 80, 100),
         }
@@ -74,20 +75,17 @@ def mock_df():
 @pytest.fixture
 def client(mock_model, mock_scaler, mock_df):
     """Create test client with mocked dependencies"""
+    # Save original values
+    original_model = app_module.model
+    original_scaler = app_module.scaler
+    original_df = app_module.df
+    original_features = app_module.features
+    
     # Mock S3 and model loading
-    with patch("my_flask_app.app.boto3.client"), patch(
-        "my_flask_app.app.joblib.load"
-    ) as mock_joblib, patch("my_flask_app.app.pd.read_csv") as mock_read_csv:
-        # Setup mocks
-        mock_joblib.side_effect = [mock_model, mock_scaler]
-        mock_read_csv.return_value = mock_df
-
-        # Import after patching
-        from my_flask_app.app import app as flask_app
-
-        # Set global variables
-        import my_flask_app.app as app_module
-
+    with patch.object(app_module, "load_model_and_scaler", return_value=True), \
+         patch.object(app_module, "load_historical_data", return_value=True):
+        
+        # Set global variables directly
         app_module.model = mock_model
         app_module.scaler = mock_scaler
         app_module.df = mock_df
@@ -97,10 +95,16 @@ def client(mock_model, mock_scaler, mock_df):
             if col not in ["aqi_index", "Calculated_AQI", "date"]
         ]
 
-        flask_app.config["TESTING"] = True
+        app_module.app.config["TESTING"] = True
 
-        with flask_app.test_client() as test_client:
+        with app_module.app.test_client() as test_client:
             yield test_client
+    
+    # Restore original values
+    app_module.model = original_model
+    app_module.scaler = original_scaler
+    app_module.df = original_df
+    app_module.features = original_features
 
 
 def test_root_endpoint(client):
@@ -228,82 +232,78 @@ def test_predict_daily_endpoint_custom_days(client):
 
 def test_aqi_category_good():
     """Test AQI category classification - Good"""
-    from my_flask_app.app import get_aqi_category
-
-    assert get_aqi_category(30) == "Good"
-    assert get_aqi_category(50) == "Good"
+    assert app_module.get_aqi_category(30) == "Good"
+    assert app_module.get_aqi_category(50) == "Good"
 
 
 def test_aqi_category_moderate():
     """Test AQI category classification - Moderate"""
-    from my_flask_app.app import get_aqi_category
-
-    assert get_aqi_category(51) == "Moderate"
-    assert get_aqi_category(100) == "Moderate"
+    assert app_module.get_aqi_category(51) == "Moderate"
+    assert app_module.get_aqi_category(100) == "Moderate"
 
 
 def test_aqi_category_unhealthy_sensitive():
     """Test AQI category classification - Unhealthy for Sensitive Groups"""
-    from my_flask_app.app import get_aqi_category
-
-    assert get_aqi_category(101) == "Unhealthy for Sensitive Groups"
-    assert get_aqi_category(150) == "Unhealthy for Sensitive Groups"
+    assert app_module.get_aqi_category(101) == "Unhealthy for Sensitive Groups"
+    assert app_module.get_aqi_category(150) == "Unhealthy for Sensitive Groups"
 
 
 def test_aqi_category_unhealthy():
     """Test AQI category classification - Unhealthy"""
-    from my_flask_app.app import get_aqi_category
-
-    assert get_aqi_category(151) == "Unhealthy"
-    assert get_aqi_category(200) == "Unhealthy"
+    assert app_module.get_aqi_category(151) == "Unhealthy"
+    assert app_module.get_aqi_category(200) == "Unhealthy"
 
 
 def test_aqi_category_very_unhealthy():
     """Test AQI category classification - Very Unhealthy"""
-    from my_flask_app.app import get_aqi_category
-
-    assert get_aqi_category(201) == "Very Unhealthy"
-    assert get_aqi_category(300) == "Very Unhealthy"
+    assert app_module.get_aqi_category(201) == "Very Unhealthy"
+    assert app_module.get_aqi_category(300) == "Very Unhealthy"
 
 
 def test_aqi_category_hazardous():
     """Test AQI category classification - Hazardous"""
-    from my_flask_app.app import get_aqi_category
-
-    assert get_aqi_category(301) == "Hazardous"
-    assert get_aqi_category(500) == "Hazardous"
+    assert app_module.get_aqi_category(301) == "Hazardous"
+    assert app_module.get_aqi_category(500) == "Hazardous"
 
 
 def test_health_endpoint_model_not_loaded():
     """Test health endpoint when model is not loaded"""
-    with patch("my_flask_app.app.model", None), patch(
-        "my_flask_app.app.scaler", None
-    ), patch("my_flask_app.app.df", None), patch(
-        "my_flask_app.app.load_model_and_scaler", return_value=False
-    ), patch(
-        "my_flask_app.app.load_historical_data", return_value=False
-    ):
-        from my_flask_app.app import app as flask_app
+    # Save original values
+    original_model = app_module.model
+    original_scaler = app_module.scaler
+    original_df = app_module.df
+    
+    try:
+        # Set to None to simulate not loaded
+        app_module.model = None
+        app_module.scaler = None
+        app_module.df = None
+        
+        with patch.object(app_module, "load_model_and_scaler", return_value=False), \
+             patch.object(app_module, "load_historical_data", return_value=False):
+            
+            app_module.app.config["TESTING"] = True
 
-        flask_app.config["TESTING"] = True
-
-        with flask_app.test_client() as test_client:
-            response = test_client.get("/health")
-            assert response.status_code == 503
-            data = response.get_json()
-            assert data["status"] == "unhealthy"
+            with app_module.app.test_client() as test_client:
+                response = test_client.get("/health")
+                assert response.status_code == 503
+                data = response.get_json()
+                assert data["status"] == "unhealthy"
+    finally:
+        # Restore original values
+        app_module.model = original_model
+        app_module.scaler = original_scaler
+        app_module.df = original_df
 
 
 def test_predict_current_without_model():
     """Test prediction endpoint when model is not loaded"""
-    with patch("my_flask_app.app.load_model_and_scaler", return_value=False), patch(
-        "my_flask_app.app.load_historical_data", return_value=False
-    ):
-        from my_flask_app.app import app as flask_app
+    with patch.object(app_module, "load_model_and_scaler", return_value=False), \
+         patch.object(app_module, "load_historical_data", return_value=False):
+        
+        app_module.app.config["TESTING"] = True
 
-        flask_app.config["TESTING"] = True
-
-        with flask_app.test_client() as test_client:
+        with app_module.app.test_client() as test_client:
             response = test_client.get("/api/predict/current")
             assert response.status_code == 500
             data = response.get_json()
