@@ -404,38 +404,50 @@ def predict_daily():
             }
         )
 
-        # Group by date and calculate statistics
-        daily_stats = (
-            prediction_df.groupby("date")
-            .agg(
-                {
-                    "aqi_index": ["min", "max", "mean"],
-                    "calculated_aqi": ["min", "max", "mean"],
-                }
-            )
-            .round(2)
-        )
+        # Ensure we return exactly `days` calendar-day summaries starting from
+        # the first future date. Grouping by unique dates can sometimes yield
+        # an extra partial day if the start hour isn't midnight, so we
+        # explicitly build the target date range and aggregate per date.
+        start_day = future_dates[0].date()
+        target_dates = [
+            (start_day + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(days)
+        ]
 
-        # Create results
         results = []
-        for date in daily_stats.index:
-            avg_aqi = float(daily_stats.loc[date, ("aqi_index", "mean")])
+        for date in target_dates:
+            day_rows = prediction_df[prediction_df["date"] == date]
+            if day_rows.empty:
+                # If there are no rows for this calendar date (can happen near
+                # DST boundaries or with sparse future ranges), fill with NaNs
+                # or carry forward the mean of available predictions.
+                avg_aqi = float(np.nan)
+                min_aqi = float(np.nan)
+                max_aqi = float(np.nan)
+                calc_mean = float(np.nan)
+            else:
+                min_aqi = float(day_rows["aqi_index"].min())
+                max_aqi = float(day_rows["aqi_index"].max())
+                avg_aqi = float(round(day_rows["aqi_index"].mean(), 2))
+                calc_min = float(day_rows["calculated_aqi"].min())
+                calc_max = float(day_rows["calculated_aqi"].max())
+                calc_mean = float(round(day_rows["calculated_aqi"].mean(), 2))
+
             results.append(
                 {
                     "date": date,
                     "aqi_index": {
-                        "min": float(daily_stats.loc[date, ("aqi_index", "min")]),
-                        "max": float(daily_stats.loc[date, ("aqi_index", "max")]),
+                        "min": min_aqi,
+                        "max": max_aqi,
                         "mean": avg_aqi,
                     },
                     "calculated_aqi": {
-                        "min": float(daily_stats.loc[date, ("calculated_aqi", "min")]),
-                        "max": float(daily_stats.loc[date, ("calculated_aqi", "max")]),
-                        "mean": float(
-                            daily_stats.loc[date, ("calculated_aqi", "mean")]
-                        ),
+                        "min": calc_min if not day_rows.empty else float(np.nan),
+                        "max": calc_max if not day_rows.empty else float(np.nan),
+                        "mean": calc_mean,
                     },
-                    "aqi_category": get_aqi_category(avg_aqi),
+                    "aqi_category": get_aqi_category(avg_aqi)
+                    if not np.isnan(avg_aqi)
+                    else None,
                 }
             )
 
