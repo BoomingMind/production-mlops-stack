@@ -65,4 +65,3 @@ def mock_scaler():
     scaler.n_features_in_ = 22
     scaler.feature_names_in_ = None
     return scaler
-

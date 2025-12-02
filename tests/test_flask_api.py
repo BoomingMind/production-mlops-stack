@@ -34,17 +34,19 @@ def mock_df():
     """Mock historical dataframe"""
     # Create a simple dataframe with required columns
     dates = pd.date_range(start="2024-01-01", periods=100, freq="H")
-    df = pd.DataFrame({
-        "year": dates.year,
-        "month": dates.month,
-        "day": dates.day,
-        "hour": dates.hour,
-        "temperature_2m": np.random.uniform(20, 35, 100),
-        "relative_humidity_2m": np.random.uniform(40, 80, 100),
-        "wind_speed_10m": np.random.uniform(0, 10, 100),
-        "aqi_index": np.random.uniform(30, 80, 100),
-        "Calculated_AQI": np.random.uniform(30, 80, 100),
-    })
+    df = pd.DataFrame(
+        {
+            "year": dates.year,
+            "month": dates.month,
+            "day": dates.day,
+            "hour": dates.hour,
+            "temperature_2m": np.random.uniform(20, 35, 100),
+            "relative_humidity_2m": np.random.uniform(40, 80, 100),
+            "wind_speed_10m": np.random.uniform(0, 10, 100),
+            "aqi_index": np.random.uniform(30, 80, 100),
+            "Calculated_AQI": np.random.uniform(30, 80, 100),
+        }
+    )
     return df
 
 
@@ -52,27 +54,30 @@ def mock_df():
 def client(mock_model, mock_scaler, mock_df):
     """Create test client with mocked dependencies"""
     # Mock S3 and model loading
-    with patch("my_flask_app.app.boto3.client"), \
-         patch("my_flask_app.app.joblib.load") as mock_joblib, \
-         patch("my_flask_app.app.pd.read_csv") as mock_read_csv:
-        
+    with patch("my_flask_app.app.boto3.client"), patch(
+        "my_flask_app.app.joblib.load"
+    ) as mock_joblib, patch("my_flask_app.app.pd.read_csv") as mock_read_csv:
         # Setup mocks
         mock_joblib.side_effect = [mock_model, mock_scaler]
         mock_read_csv.return_value = mock_df
-        
+
         # Import after patching
         from my_flask_app.app import app as flask_app
-        
+
         # Set global variables
         import my_flask_app.app as app_module
+
         app_module.model = mock_model
         app_module.scaler = mock_scaler
         app_module.df = mock_df
-        app_module.features = [col for col in mock_df.columns 
-                               if col not in ["aqi_index", "Calculated_AQI", "date"]]
-        
+        app_module.features = [
+            col
+            for col in mock_df.columns
+            if col not in ["aqi_index", "Calculated_AQI", "date"]
+        ]
+
         flask_app.config["TESTING"] = True
-        
+
         with flask_app.test_client() as test_client:
             yield test_client
 
@@ -112,7 +117,7 @@ def test_predict_current_endpoint(client, mock_model):
     assert "predicted_calculated_aqi" in data["prediction"]
     assert "aqi_category" in data["prediction"]
     assert "datetime" in data["prediction"]
-    
+
     # Verify model was called
     assert mock_model.predict.called
 
@@ -126,7 +131,7 @@ def test_predict_endpoint_default(client, mock_model):
     assert "predictions" in data
     assert "prediction_info" in data
     assert "statistics" in data
-    
+
     # Default is 3 days = 72 hours
     assert data["prediction_info"]["days"] == 3
     assert data["prediction_info"]["total_hours"] == 72
@@ -151,7 +156,7 @@ def test_predict_hourly_endpoint_default(client):
     data = response.get_json()
     assert data["success"] is True
     assert "predictions" in data
-    
+
     # Default is 24 hours
     assert data["total_hours"] == 24
     assert len(data["predictions"]) == 24
@@ -174,7 +179,7 @@ def test_predict_daily_endpoint_default(client):
     data = response.get_json()
     assert data["success"] is True
     assert "daily_summary" in data
-    
+
     # Default is 3 days
     assert data["days"] == 3
     assert len(data["daily_summary"]) == 3
@@ -188,7 +193,7 @@ def test_predict_daily_endpoint_custom_days(client):
     assert data["success"] is True
     assert data["days"] == 7
     assert len(data["daily_summary"]) == 7
-    
+
     # Check structure of daily summary
     for day_data in data["daily_summary"]:
         assert "date" in day_data
@@ -203,6 +208,7 @@ def test_predict_daily_endpoint_custom_days(client):
 def test_aqi_category_good():
     """Test AQI category classification - Good"""
     from my_flask_app.app import get_aqi_category
+
     assert get_aqi_category(30) == "Good"
     assert get_aqi_category(50) == "Good"
 
@@ -210,6 +216,7 @@ def test_aqi_category_good():
 def test_aqi_category_moderate():
     """Test AQI category classification - Moderate"""
     from my_flask_app.app import get_aqi_category
+
     assert get_aqi_category(51) == "Moderate"
     assert get_aqi_category(100) == "Moderate"
 
@@ -217,6 +224,7 @@ def test_aqi_category_moderate():
 def test_aqi_category_unhealthy_sensitive():
     """Test AQI category classification - Unhealthy for Sensitive Groups"""
     from my_flask_app.app import get_aqi_category
+
     assert get_aqi_category(101) == "Unhealthy for Sensitive Groups"
     assert get_aqi_category(150) == "Unhealthy for Sensitive Groups"
 
@@ -224,6 +232,7 @@ def test_aqi_category_unhealthy_sensitive():
 def test_aqi_category_unhealthy():
     """Test AQI category classification - Unhealthy"""
     from my_flask_app.app import get_aqi_category
+
     assert get_aqi_category(151) == "Unhealthy"
     assert get_aqi_category(200) == "Unhealthy"
 
@@ -231,6 +240,7 @@ def test_aqi_category_unhealthy():
 def test_aqi_category_very_unhealthy():
     """Test AQI category classification - Very Unhealthy"""
     from my_flask_app.app import get_aqi_category
+
     assert get_aqi_category(201) == "Very Unhealthy"
     assert get_aqi_category(300) == "Very Unhealthy"
 
@@ -238,21 +248,24 @@ def test_aqi_category_very_unhealthy():
 def test_aqi_category_hazardous():
     """Test AQI category classification - Hazardous"""
     from my_flask_app.app import get_aqi_category
+
     assert get_aqi_category(301) == "Hazardous"
     assert get_aqi_category(500) == "Hazardous"
 
 
 def test_health_endpoint_model_not_loaded():
     """Test health endpoint when model is not loaded"""
-    with patch("my_flask_app.app.model", None), \
-         patch("my_flask_app.app.scaler", None), \
-         patch("my_flask_app.app.df", None), \
-         patch("my_flask_app.app.load_model_and_scaler", return_value=False), \
-         patch("my_flask_app.app.load_historical_data", return_value=False):
-        
+    with patch("my_flask_app.app.model", None), patch(
+        "my_flask_app.app.scaler", None
+    ), patch("my_flask_app.app.df", None), patch(
+        "my_flask_app.app.load_model_and_scaler", return_value=False
+    ), patch(
+        "my_flask_app.app.load_historical_data", return_value=False
+    ):
         from my_flask_app.app import app as flask_app
+
         flask_app.config["TESTING"] = True
-        
+
         with flask_app.test_client() as test_client:
             response = test_client.get("/health")
             assert response.status_code == 503
@@ -262,12 +275,13 @@ def test_health_endpoint_model_not_loaded():
 
 def test_predict_current_without_model():
     """Test prediction endpoint when model is not loaded"""
-    with patch("my_flask_app.app.load_model_and_scaler", return_value=False), \
-         patch("my_flask_app.app.load_historical_data", return_value=False):
-        
+    with patch("my_flask_app.app.load_model_and_scaler", return_value=False), patch(
+        "my_flask_app.app.load_historical_data", return_value=False
+    ):
         from my_flask_app.app import app as flask_app
+
         flask_app.config["TESTING"] = True
-        
+
         with flask_app.test_client() as test_client:
             response = test_client.get("/api/predict/current")
             assert response.status_code == 500
