@@ -33,16 +33,37 @@ def mock_scaler():
 def mock_df():
     """Mock historical dataframe"""
     # Create a simple dataframe with required columns
-    dates = pd.date_range(start="2024-01-01", periods=100, freq="H")
+    dates = pd.date_range(start="2024-01-01", periods=100, freq="h")
     df = pd.DataFrame(
         {
             "year": dates.year,
             "month": dates.month,
             "day": dates.day,
             "hour": dates.hour,
+            # Air quality components
+            "co": np.random.uniform(200, 1500, 100),
+            "no": np.random.uniform(0, 1, 100),
+            "no2": np.random.uniform(10, 60, 100),
+            "o3": np.random.uniform(20, 50, 100),
+            "so2": np.random.uniform(5, 15, 100),
+            "pm2_5": np.random.uniform(20, 80, 100),
+            "pm10": np.random.uniform(30, 120, 100),
+            "nh3": np.random.uniform(5, 15, 100),
+            # Weather features
             "temperature_2m": np.random.uniform(20, 35, 100),
             "relative_humidity_2m": np.random.uniform(40, 80, 100),
+            "precipitation": np.random.uniform(0, 5, 100),
             "wind_speed_10m": np.random.uniform(0, 10, 100),
+            "wind_direction_10m": np.random.uniform(0, 360, 100),
+            "surface_pressure": np.random.uniform(1000, 1020, 100),
+            "dew_point_2m": np.random.uniform(15, 25, 100),
+            "apparent_temperature": np.random.uniform(20, 35, 100),
+            "shortwave_radiation": np.random.uniform(0, 800, 100),
+            "et0_fao_evapotranspiration": np.random.uniform(0, 1, 100),
+            "cloud_cover": np.random.uniform(0, 100, 100),
+            "rain": np.random.uniform(0, 5, 100),
+            "snowfall": np.random.uniform(0, 0, 100),
+            # Target columns
             "aqi_index": np.random.uniform(30, 80, 100),
             "Calculated_AQI": np.random.uniform(30, 80, 100),
         }
