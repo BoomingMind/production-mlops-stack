@@ -2,7 +2,7 @@
 Unit tests for the Flask AQI Prediction API
 """
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import sys
 import os
 import numpy as np
