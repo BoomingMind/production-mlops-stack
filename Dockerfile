@@ -40,11 +40,12 @@ RUN addgroup --system app \
     && mkdir -p /app \
     && chown -R app:app /app
 
-# Only copy what we need
-COPY src/ ./src/
-    # Do not bake secrets into the image; rely on environment variables at runtime
-    # If a local .env exists during development, python-dotenv will load it automatically
-    # COPY .env .env  <-- intentionally disabled to avoid CI failures and secret leakage
+# Copy only the Flask app
+# Copy the Flask app and .env
+COPY my_flask_app/app.py ./app.py
+COPY .env ./
+
+
 
 # Use non-root user
 USER app
@@ -52,9 +53,9 @@ USER app
 # Expose API port
 EXPOSE 8000
 
-# Healthcheck: ping /health
+# Healthcheck: ping /
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"
 
 # Default command
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "app.py"]

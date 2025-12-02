@@ -6,7 +6,7 @@ services:
     image: ghcr.io/mlflow/mlflow:latest
     container_name: mlflow_server
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - ./mlruns:/mlflow/mlruns
       - ./mlflow-artifacts:/mlflow/artifacts
@@ -15,7 +15,7 @@ services:
       --backend-store-uri sqlite:///mlflow/mlruns/mlflow.db
       --default-artifact-root /mlflow/artifacts
       --host 0.0.0.0
-      --port 5000
+      --port 5001
     networks:
       - monitoring
     restart: unless-stopped
@@ -76,7 +76,7 @@ services:
       - monitoring
     restart: unless-stopped
 
-  # FastAPI Application
+  # Flask Application
   api:
     build:
       context: .
@@ -87,14 +87,18 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - MLFLOW_TRACKING_URI=http://mlflow:5001
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     networks:
       - monitoring
     restart: unless-stopped
     depends_on:
       - mlflow
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
       interval: 30s
       timeout: 10s
       retries: 3

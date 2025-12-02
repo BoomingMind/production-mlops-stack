@@ -75,7 +75,7 @@ jobs:
       - name: Run pytest with coverage
         run: |
           echo "Running tests with coverage..."
-          pytest tests/ -v --cov=src --cov-report=term --cov-report=xml --cov-report=html --cov-fail-under=60
+          pytest tests/ -v --cov=src --cov-report=term --cov-report=xml --cov-report=html --cov-fail-under=80
         continue-on-error: false
         
       - name: Upload coverage reports
@@ -341,55 +341,28 @@ jobs:
                   "data": None
               },
               {
-                  "name": "Model Info",
+                  "name": "Current Hour Prediction",
                   "method": "GET",
-                  "endpoint": "/model/info",
+                  "endpoint": "/api/predict/current",
                   "data": None
               },
               {
-                  "name": "Prediction - Good Air Quality",
-                  "method": "POST",
-                  "endpoint": "/predict",
-                  "data": {
-                      "co": 200.0, "no": 0.1, "no2": 10.0, "o3": 40.0, "so2": 5.0,
-                      "pm2_5": 15.0, "pm10": 30.0, "nh3": 2.0, "temperature_2m": 25.0,
-                      "relative_humidity_2m": 60.0, "precipitation": 0.0,
-                      "wind_speed_10m": 5.0, "wind_direction_10m": 180.0,
-                      "surface_pressure": 1013.0, "dew_point_2m": 18.0,
-                      "apparent_temperature": 26.0, "shortwave_radiation": 400.0,
-                      "et0_fao_evapotranspiration": 0.2, "year": 2025, "month": 10,
-                      "day": 30, "hour": 12
-                  }
+                  "name": "3-Day Forecast",
+                  "method": "GET",
+                  "endpoint": "/api/predict?days=3",
+                  "data": None
               },
               {
-                  "name": "Prediction - Moderate Air Quality",
-                  "method": "POST",
-                  "endpoint": "/predict",
-                  "data": {
-                      "co": 300.0, "no": 1.0, "no2": 20.0, "o3": 60.0, "so2": 10.0,
-                      "pm2_5": 35.0, "pm10": 60.0, "nh3": 5.0, "temperature_2m": 28.0,
-                      "relative_humidity_2m": 70.0, "precipitation": 0.0,
-                      "wind_speed_10m": 3.0, "wind_direction_10m": 90.0,
-                      "surface_pressure": 1010.0, "dew_point_2m": 22.0,
-                      "apparent_temperature": 30.0, "shortwave_radiation": 500.0,
-                      "et0_fao_evapotranspiration": 0.3, "year": 2025, "month": 10,
-                      "day": 30, "hour": 14
-                  }
+                  "name": "Hourly Forecast - 24 hours",
+                  "method": "GET",
+                  "endpoint": "/api/predict/hourly?hours=24",
+                  "data": None
               },
               {
-                  "name": "Prediction - Poor Air Quality",
-                  "method": "POST",
-                  "endpoint": "/predict",
-                  "data": {
-                      "co": 500.0, "no": 2.0, "no2": 40.0, "o3": 100.0, "so2": 20.0,
-                      "pm2_5": 75.0, "pm10": 150.0, "nh3": 10.0, "temperature_2m": 32.0,
-                      "relative_humidity_2m": 80.0, "precipitation": 0.0,
-                      "wind_speed_10m": 1.0, "wind_direction_10m": 0.0,
-                      "surface_pressure": 1008.0, "dew_point_2m": 26.0,
-                      "apparent_temperature": 35.0, "shortwave_radiation": 600.0,
-                      "et0_fao_evapotranspiration": 0.4, "year": 2025, "month": 10,
-                      "day": 30, "hour": 16
-                  }
+                  "name": "Daily Summary - 5 days",
+                  "method": "GET",
+                  "endpoint": "/api/predict/daily?days=5",
+                  "data": None
               }
           ]
           
@@ -404,54 +377,33 @@ jobs:
               print(f"\nTest {i}/{len(test_cases)}: {test['name']}")
               try:
                   if test['method'] == 'GET':
-                      response = requests.get(f"{BASE_URL}{test['endpoint']}", timeout=15)
+                      response = requests.get(f"{BASE_URL}{test['endpoint']}", timeout=30)
                   else:
-                      response = requests.post(f"{BASE_URL}{test['endpoint']}", json=test['data'], timeout=15)
-                  
-                  # Special handling for prediction endpoints if model not loaded
-                  if test['endpoint'] == '/predict' and response.status_code == 503:
-                      print(f"  SKIP - Model not loaded (Status: {response.status_code})")
-                      print(f"  Response: {response.text}")
-                      continue
+                      response = requests.post(f"{BASE_URL}{test['endpoint']}", json=test['data'], timeout=30)
                   
                   if response.status_code == 200:
-                      print(f"  PASS - Status: {response.status_code}")
-                      if test['endpoint'] == '/health':
-                          # Show health status for debugging
-                          health_data = response.json()
-                          print(f"  Health Status: {health_data.get('status', 'unknown')}")
-                          print(f"  Model Loaded: {health_data.get('model_loaded', False)}")
+                      print(f"  ✅ PASS - Status: {response.status_code}")
                       passed += 1
                   else:
-                      print(f"  FAIL - Status: {response.status_code}")
-                      print(f"  Response: {response.text}")
+                      print(f"  ❌ FAIL - Status: {response.status_code}")
+                      print(f"  Response: {response.text[:200]}")
                       failed += 1
               except Exception as e:
-                  print(f"  FAIL - Error: {str(e)}")
+                  print(f"  ❌ FAIL - Error: {str(e)}")
                   failed += 1
           
           print("\n" + "=" * 70)
           print(f"Results: {passed} passed, {failed} failed out of {len(test_cases)} tests")
           print("=" * 70)
           
-          # Check if at least basic endpoints are working
+          # Strict requirement: ALL tests must pass (status = 200)
           if failed > 0:
-              # Allow some failures if they're prediction-related and model isn't loaded
-              critical_endpoints_failed = False
-              for i, test in enumerate(test_cases):
-                  if test['endpoint'] in ['/health', '/'] and i < len(test_cases):
-                      # These are critical - if they fail, we should fail the build
-                      pass
-              
-              if failed >= len(test_cases) // 2:  # If more than half failed
-                  print("Too many acceptance tests FAILED!")
-                  sys.exit(1)
-              else:
-                  print("Some tests failed but core functionality works. Proceeding...")
+              print(f"\n❌ FAILURE: {failed} test(s) did not return status 200!")
+              print("All acceptance tests must pass for canary deployment to succeed.")
+              sys.exit(1)
           else:
-              print("All acceptance tests PASSED!")
-              
-          sys.exit(0)
+              print("\n✅ SUCCESS: All acceptance tests PASSED!")
+              sys.exit(0)
           EOF
           
       - name: Run acceptance tests
