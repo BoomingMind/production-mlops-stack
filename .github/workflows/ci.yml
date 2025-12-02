@@ -36,12 +36,12 @@ jobs:
       - name: Run Ruff linter
         run: |
           echo "Running Ruff linter..."
-          ruff check src/ --output-format=github
+          ruff check my_flask_app/ tests/ --output-format=github
           
       - name: Run Black formatter check
         run: |
           echo "Checking code formatting with Black..."
-          black --check src/
+          black --check my_flask_app/ tests/
           
       - name: Lint summary
         if: success()
@@ -75,7 +75,7 @@ jobs:
       - name: Run pytest with coverage
         run: |
           echo "Running tests with coverage..."
-          pytest tests/ -v --cov=src --cov-report=term --cov-report=xml --cov-report=html --cov-fail-under=80
+          pytest tests/ -v --cov=my_flask_app --cov-report=term --cov-report=xml --cov-report=html --cov-fail-under=80
         continue-on-error: false
         
       - name: Upload coverage reports
