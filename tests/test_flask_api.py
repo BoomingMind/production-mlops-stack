@@ -1,12 +1,14 @@
 """
 Unit tests for the Flask AQI Prediction API
 """
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-import sys
+
 import os
+import sys
+from unittest.mock import MagicMock, Mock, patch
+
 import numpy as np
 import pandas as pd
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -14,8 +16,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 # Mock boto3 before importing the app module
 sys.modules["boto3"] = MagicMock()
 
-# Now import the app module
-import my_flask_app.app as app_module
+import my_flask_app.app as app_module  # noqa: E402
 
 
 @pytest.fixture
@@ -365,7 +366,7 @@ def test_get_s3_client():
             mock_boto_client.return_value = Mock()
             from my_flask_app.app import get_s3_client
 
-            client = get_s3_client()
+            _ = get_s3_client()  # Call the function, result not needed
             mock_boto_client.assert_called_once_with(
                 "s3",
                 aws_access_key_id="test_key",
@@ -399,7 +400,7 @@ def test_load_model_and_scaler_success():
             mock_joblib.load.return_value = Mock()
 
             result = app_module.load_model_and_scaler()
-            assert result == True
+            assert result is True
             assert mock_s3.get_object.called
     finally:
         app_module.model = original_model
@@ -420,7 +421,7 @@ def test_load_model_and_scaler_already_loaded():
         app_module.scaler = Mock()
 
         result = app_module.load_model_and_scaler()
-        assert result == True
+        assert result is True
     finally:
         app_module.model = original_model
         app_module.scaler = original_scaler
@@ -443,7 +444,7 @@ def test_load_model_and_scaler_failure():
             app_module, "get_s3_client", side_effect=Exception("S3 Error")
         ):
             result = app_module.load_model_and_scaler()
-            assert result == False
+            assert result is False
     finally:
         app_module.model = original_model
         app_module.scaler = original_scaler
@@ -489,7 +490,7 @@ def test_load_historical_data_success():
             mock_read_csv.return_value = mock_df
 
             result = app_module.load_historical_data()
-            assert result == True
+            assert result is True
     finally:
         app_module.df = original_df
         app_module.features = original_features
@@ -509,7 +510,7 @@ def test_load_historical_data_already_loaded():
         app_module.features = ["col1", "col2"]
 
         result = app_module.load_historical_data()
-        assert result == True
+        assert result is True
     finally:
         app_module.df = original_df
         app_module.features = original_features
@@ -532,7 +533,7 @@ def test_load_historical_data_failure():
             app_module, "get_s3_client", side_effect=Exception("S3 Error")
         ):
             result = app_module.load_historical_data()
-            assert result == False
+            assert result is False
     finally:
         app_module.df = original_df
         app_module.features = original_features
@@ -570,7 +571,7 @@ def test_predict_endpoint_exception(client):
         response = client.get("/api/predict")
         assert response.status_code == 500
         data = response.get_json()
-        assert data["success"] == False
+        assert data["success"] is False
         assert "error" in data
     finally:
         app_module.generate_future_features = original_generate
@@ -591,7 +592,7 @@ def test_predict_hourly_endpoint_exception(client):
         response = client.get("/api/predict/hourly")
         assert response.status_code == 500
         data = response.get_json()
-        assert data["success"] == False
+        assert data["success"] is False
         assert "error" in data
     finally:
         app_module.generate_future_features = original_generate
@@ -612,7 +613,7 @@ def test_predict_daily_endpoint_exception(client):
         response = client.get("/api/predict/daily")
         assert response.status_code == 500
         data = response.get_json()
-        assert data["success"] == False
+        assert data["success"] is False
         assert "error" in data
     finally:
         app_module.generate_future_features = original_generate
@@ -633,7 +634,7 @@ def test_predict_current_endpoint_exception(client):
         response = client.get("/api/predict/current")
         assert response.status_code == 500
         data = response.get_json()
-        assert data["success"] == False
+        assert data["success"] is False
         assert "error" in data
     finally:
         app_module.generate_future_features = original_generate
