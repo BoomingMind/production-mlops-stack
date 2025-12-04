@@ -44,3 +44,4 @@ pip-audit==2.6.3
 
 # ==================== Utilities ====================
 requests>=2.32.0  # Updated for evidently compatibility
+openai>=1.0.0
