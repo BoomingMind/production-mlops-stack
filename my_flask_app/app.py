@@ -506,4 +506,6 @@ if __name__ == "__main__":
         print("   Model and data will be loaded on first request")
         print("=" * 60)
 
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    # Disable debug mode in production (when running in container)
+    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    app.run(host="0.0.0.0", port=8000, debug=debug_mode)
