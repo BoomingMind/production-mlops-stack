@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 # Mock boto3 before importing the app module
 sys.modules["boto3"] = MagicMock()
 
-import my_flask_app.app as app_module  # noqa: E402
+import src.app as app_module  # noqa: E402
 
 
 @pytest.fixture
@@ -362,9 +362,9 @@ def test_get_s3_client():
             "AWS_DEFAULT_REGION": "us-east-1",
         },
     ):
-        with patch("my_flask_app.app.boto3.client") as mock_boto_client:
+        with patch("src.app.boto3.client") as mock_boto_client:
             mock_boto_client.return_value = Mock()
-            from my_flask_app.app import get_s3_client
+            from src.app import get_s3_client
 
             _ = get_s3_client()  # Call the function, result not needed
             mock_boto_client.assert_called_once_with(
@@ -377,7 +377,7 @@ def test_get_s3_client():
 
 def test_load_model_and_scaler_success():
     """Test successful loading of model and scaler from S3"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original values
     original_model = app_module.model
@@ -409,7 +409,7 @@ def test_load_model_and_scaler_success():
 
 def test_load_model_and_scaler_already_loaded():
     """Test that model and scaler are not reloaded if already present"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original values
     original_model = app_module.model
@@ -429,7 +429,7 @@ def test_load_model_and_scaler_already_loaded():
 
 def test_load_model_and_scaler_failure():
     """Test handling of S3 loading failure"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original values
     original_model = app_module.model
@@ -452,7 +452,7 @@ def test_load_model_and_scaler_failure():
 
 def test_load_historical_data_success():
     """Test successful loading of historical data from S3"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original values
     original_df = app_module.df
@@ -498,7 +498,7 @@ def test_load_historical_data_success():
 
 def test_load_historical_data_already_loaded():
     """Test that historical data is not reloaded if already present"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original values
     original_df = app_module.df
@@ -518,7 +518,7 @@ def test_load_historical_data_already_loaded():
 
 def test_load_historical_data_failure():
     """Test handling of historical data loading failure"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original values
     original_df = app_module.df
@@ -541,7 +541,7 @@ def test_load_historical_data_failure():
 
 def test_health_endpoint_exception():
     """Test health endpoint when an exception occurs"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     with patch.object(
         app_module, "load_model_and_scaler", side_effect=Exception("Test error")
@@ -558,7 +558,7 @@ def test_health_endpoint_exception():
 
 def test_predict_endpoint_exception(client):
     """Test predict endpoint when an exception occurs during prediction"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original
     original_generate = app_module.generate_future_features
@@ -579,7 +579,7 @@ def test_predict_endpoint_exception(client):
 
 def test_predict_hourly_endpoint_exception(client):
     """Test predict hourly endpoint when an exception occurs"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original
     original_generate = app_module.generate_future_features
@@ -600,7 +600,7 @@ def test_predict_hourly_endpoint_exception(client):
 
 def test_predict_daily_endpoint_exception(client):
     """Test predict daily endpoint when an exception occurs"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original
     original_generate = app_module.generate_future_features
@@ -621,7 +621,7 @@ def test_predict_daily_endpoint_exception(client):
 
 def test_predict_current_endpoint_exception(client):
     """Test predict current endpoint when an exception occurs"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save original
     original_generate = app_module.generate_future_features
@@ -642,7 +642,7 @@ def test_predict_current_endpoint_exception(client):
 
 def test_predict_without_model_or_data():
     """Test predict endpoint when model/data fails to load"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     with patch.object(app_module, "load_model_and_scaler", return_value=False):
         app_module.app.config["TESTING"] = True
@@ -656,7 +656,7 @@ def test_predict_without_model_or_data():
 
 def test_predict_hourly_without_model_or_data():
     """Test predict hourly endpoint when model/data fails to load"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     with patch.object(app_module, "load_model_and_scaler", return_value=False):
         app_module.app.config["TESTING"] = True
@@ -670,7 +670,7 @@ def test_predict_hourly_without_model_or_data():
 
 def test_predict_daily_without_model_or_data():
     """Test predict daily endpoint when model/data fails to load"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     with patch.object(app_module, "load_model_and_scaler", return_value=False):
         app_module.app.config["TESTING"] = True
@@ -684,7 +684,7 @@ def test_predict_daily_without_model_or_data():
 
 def test_generate_future_features():
     """Test the generate_future_features function"""
-    import my_flask_app.app as app_module
+    import src.app as app_module
 
     # Save originals
     original_df = app_module.df
