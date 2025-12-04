@@ -41,11 +41,10 @@ RUN addgroup --system app \
     && chown -R app:app /app
 
 # Copy only the Flask app
-# Copy the Flask app and .env
 COPY my_flask_app/app.py ./app.py
-COPY .env ./
 
-
+# Note: .env file is NOT copied - environment variables should be passed at runtime
+# via docker run -e VAR=value or docker-compose environment section
 
 # Use non-root user
 USER app
