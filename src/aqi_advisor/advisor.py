@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 from groq import Groq
 
-from prompts import PromptStrategy, get_aqi_category, PromptLoader
+from src.aqi_advisor.prompts import PromptStrategy, get_aqi_category, PromptLoader
 
 load_dotenv()
 

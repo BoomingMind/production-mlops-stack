@@ -1,0 +1,171 @@
+[
+  {
+    "aqi": 25,
+    "category": "Good",
+    "rouge_l": 0.3018867924528302,
+    "cosine_sim": 0.6386867165565491,
+    "precaution_overlap": 0.6666666666666666,
+    "latency": 2.548,
+    "generated_summary": "The current air quality is good with an AQI value of 25, indicating minimal health risks for the general population. However, individuals with pre-existing respiratory conditions should still take precautions to minimize exposure. No emergency actions are required at this time.",
+    "generated_precautions": [
+      "Continue with normal outdoor activities",
+      "No special precautions are needed for vulnerable populations",
+      "Monitor air quality updates for any changes in conditions"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 75,
+    "category": "Moderate",
+    "rouge_l": 0.14492753623188404,
+    "cosine_sim": 0.7648858428001404,
+    "precaution_overlap": 0.3333333333333333,
+    "latency": 2.943,
+    "generated_summary": "The current air quality is moderate, with an AQI value of 75, which may cause respiratory issues for sensitive groups such as children, the elderly, and those with pre-existing conditions. It is essential to take precautions to minimize exposure. Individuals with respiratory or cardiovascular conditions should be particularly cautious.",
+    "generated_precautions": [
+      "Avoid strenuous outdoor activities",
+      "Keep windows and doors closed to prevent indoor air pollution",
+      "Use air purifiers if available",
+      "Wear a mask rated FFP2 or equivalent when outdoors",
+      "Monitor air quality indexes for updates and follow health advisories"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 125,
+    "category": "Unhealthy for Sensitive Groups",
+    "rouge_l": 0.28125,
+    "cosine_sim": 0.5090588331222534,
+    "precaution_overlap": 0.75,
+    "latency": 2.651,
+    "generated_summary": "The current AQI of 125 poses health risks to sensitive groups, including children, elderly, and those with respiratory or cardiovascular conditions, who may experience respiratory symptoms and cardiovascular effects. It is essential to take precautions to minimize exposure. People with pre-existing conditions should be particularly cautious.",
+    "generated_precautions": [
+      "Avoid outdoor activities, especially for sensitive groups",
+      "Use air purifiers indoors to reduce particulate matter exposure",
+      "Keep windows and doors closed to prevent outdoor air from entering homes",
+      "Consider wearing a mask rated FFP2 or equivalent when outdoors",
+      "Monitor health closely and seek medical attention if symptoms worsen"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 175,
+    "category": "Unhealthy",
+    "rouge_l": 0.08823529411764705,
+    "cosine_sim": 0.4427844285964966,
+    "precaution_overlap": 0.8,
+    "latency": 2.653,
+    "generated_summary": "The current AQI of 175 poses significant health risks, particularly for vulnerable populations such as children, the elderly, and those with pre-existing respiratory or cardiovascular conditions, who may experience exacerbated symptoms. Prolonged exposure can lead to respiratory issues and cardiovascular problems. It is essential to take immediate precautions to minimize exposure.",
+    "generated_precautions": [
+      "Avoid outdoor activities, especially strenuous ones",
+      "Stay indoors with windows and doors closed",
+      "Use air purifiers if available",
+      "Avoid smoking and second-hand smoke",
+      "Follow local health advisories and emergency response protocols",
+      "Consider wearing a mask rated FFP2 or equivalent when outdoors"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 250,
+    "category": "Very Unhealthy",
+    "rouge_l": 0.1492537313432836,
+    "cosine_sim": 0.5390975475311279,
+    "precaution_overlap": 0.6,
+    "latency": 2.997,
+    "generated_summary": "The current AQI of 250 poses a significant health risk, particularly for vulnerable populations such as children, the elderly, and those with pre-existing respiratory or cardiovascular conditions, who may experience severe respiratory symptoms and cardiovascular distress. Everyone in the area should take immediate precautions to minimize exposure. Prolonged exposure can lead to serious health complications.",
+    "generated_precautions": [
+      "Stay indoors with windows and doors sealed",
+      "Use air purifiers if available",
+      "Avoid strenuous outdoor activities",
+      "Keep children and pets indoors",
+      "Follow emergency response protocols if symptoms worsen",
+      "Consider wearing N95 masks if outdoor activities are unavoidable"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 350,
+    "category": "Hazardous",
+    "rouge_l": 0.10344827586206896,
+    "cosine_sim": 0.5340219140052795,
+    "precaution_overlap": 0.6666666666666666,
+    "latency": 2.738,
+    "generated_summary": "The current AQI of 350 poses a significant health risk, particularly to vulnerable populations such as children, the elderly, and those with pre-existing respiratory or cardiovascular conditions. Prolonged exposure can lead to severe respiratory and cardiovascular effects. Immediate precautions are necessary to minimize health impacts.",
+    "generated_precautions": [
+      "Stay indoors with windows and doors sealed to prevent outdoor air from entering",
+      "Use air purifiers to reduce indoor particulate matter concentrations",
+      "Avoid strenuous outdoor activities, especially for vulnerable populations",
+      "Wear N95 or N100 masks when outdoors to filter out particulate matter",
+      "Keep medication for respiratory conditions, such as asthma, readily available and follow prescribed treatment plans",
+      "Monitor air quality indexes and follow emergency response protocols"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 45,
+    "category": "Good",
+    "rouge_l": 0.18867924528301885,
+    "cosine_sim": 0.6125304102897644,
+    "precaution_overlap": 0.3333333333333333,
+    "latency": 2.556,
+    "generated_summary": "The current air quality is good with an AQI value of 45, indicating minimal health risks for the general population. However, individuals with pre-existing respiratory conditions should still take precautions to minimize exposure. No emergency actions are required at this time.",
+    "generated_precautions": [
+      "Continue with normal outdoor activities",
+      "No special precautions needed for vulnerable populations",
+      "Monitor air quality forecasts for potential changes"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 95,
+    "category": "Moderate",
+    "rouge_l": 0.1935483870967742,
+    "cosine_sim": 0.7481479644775391,
+    "precaution_overlap": 0.0,
+    "latency": 2.929,
+    "generated_summary": "The current air quality is moderate, with an AQI value of 95, which may cause respiratory issues for sensitive groups such as children, elderly, and those with pre-existing conditions. It is essential to take precautions to minimize exposure. People with respiratory or cardiovascular conditions should be particularly cautious.",
+    "generated_precautions": [
+      "Avoid strenuous outdoor activities",
+      "Keep windows and doors closed to prevent indoor pollution",
+      "Use air purifiers if available",
+      "Wear a mask rated FFP2 or N95 when outdoors",
+      "Monitor air quality indexes for updates and follow health advisories"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 145,
+    "category": "Unhealthy for Sensitive Groups",
+    "rouge_l": 0.16129032258064516,
+    "cosine_sim": 0.44270792603492737,
+    "precaution_overlap": 0.3333333333333333,
+    "latency": 2.609,
+    "generated_summary": "The current AQI of 145 indicates unhealthy air quality for sensitive groups, including children, elderly, and those with respiratory or cardiovascular conditions, who may experience adverse health effects. Prolonged exposure can lead to respiratory issues and cardiovascular problems. It is crucial to take precautions to minimize exposure.",
+    "generated_precautions": [
+      "Avoid outdoor activities, especially for sensitive groups",
+      "Use air purifiers indoors to reduce particulate matter exposure",
+      "Wear a mask rated N95 or higher when outdoors",
+      "Keep windows and doors closed to prevent outdoor air from entering homes",
+      "Reschedule outdoor activities for a time when the AQI is lower"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 195,
+    "category": "Unhealthy",
+    "rouge_l": 0.09230769230769231,
+    "cosine_sim": 0.40104806423187256,
+    "precaution_overlap": 1.0,
+    "latency": 2.929,
+    "generated_summary": "The current AQI of 195 indicates an unhealthy air quality level, posing significant risks to respiratory and cardiovascular health, especially for vulnerable populations such as children, elderly, and those with pre-existing conditions. Prolonged exposure can exacerbate health issues and lead to serious complications. Immediate precautions are necessary to minimize health impacts.",
+    "generated_precautions": [
+      "Avoid outdoor activities, especially for sensitive groups",
+      "Use air purifiers indoors to reduce particulate matter exposure",
+      "Wear N95 masks when outdoors to filter out pollutants",
+      "Keep windows and doors closed to prevent indoor air pollution",
+      "Monitor health closely, especially for symptoms like coughing, wheezing, or shortness of breath"
+    ],
+    "error": null
+  }
+]

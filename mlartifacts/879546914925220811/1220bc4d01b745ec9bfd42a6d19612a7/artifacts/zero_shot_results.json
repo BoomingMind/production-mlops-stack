@@ -1,0 +1,161 @@
+[
+  {
+    "aqi": 25,
+    "category": "Good",
+    "rouge_l": 0.18181818181818182,
+    "cosine_sim": 0.5470119118690491,
+    "precaution_overlap": 0.3333333333333333,
+    "latency": 0.707,
+    "generated_summary": "An AQI value of 25 indicates good air quality, posing little to no risk to health. At this level, air quality is satisfactory, and air pollution poses little or no risk. People can continue with their daily activities without any concerns about air quality.",
+    "generated_precautions": [
+      "None necessary, but maintaining good overall health is always recommended",
+      "Continue usual outdoor activities without concern for air quality",
+      "Stay informed about air quality in your area for any changes"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 75,
+    "category": "Moderate",
+    "rouge_l": 0.22580645161290322,
+    "cosine_sim": 0.5816910862922668,
+    "precaution_overlap": 0.3333333333333333,
+    "latency": 0.93,
+    "generated_summary": "An AQI value of 75 indicates moderate air quality, which may pose a health risk to sensitive groups such as people with respiratory issues. These individuals may experience respiratory symptoms like coughing or shortness of breath. Everyone else is unlikely to be affected.",
+    "generated_precautions": [
+      "Sensitive groups should limit prolonged outdoor activities",
+      "Use air purifiers indoors to reduce exposure to pollutants",
+      "Avoid strenuous outdoor activities, especially during peak pollution hours",
+      "Keep windows and doors closed to prevent outdoor pollutants from entering homes"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 125,
+    "category": "Unhealthy for Sensitive Groups",
+    "rouge_l": 0.1904761904761905,
+    "cosine_sim": 0.33932361006736755,
+    "precaution_overlap": 1.0,
+    "latency": 0.579,
+    "generated_summary": "An AQI of 125 indicates that the air quality is unhealthy for sensitive groups, such as children, older adults, and people with respiratory diseases. At this level, these individuals may experience respiratory symptoms like coughing and shortness of breath. Prolonged exposure can exacerbate existing health conditions.",
+    "generated_precautions": [
+      "Avoid outdoor activities that cause heavy breathing, such as running or biking",
+      "Keep windows and doors closed to prevent polluted air from entering homes",
+      "Use air purifiers and follow the manufacturer's instructions for operation and maintenance",
+      "Consider wearing a mask rated FFP2 or equivalent when outdoors",
+      "Schedule outdoor activities for times when the AQI is forecasted to be lower"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 175,
+    "category": "Unhealthy",
+    "rouge_l": 0.14545454545454548,
+    "cosine_sim": 0.32889461517333984,
+    "precaution_overlap": 0.6,
+    "latency": 0.606,
+    "generated_summary": "An AQI of 175 indicates an unhealthy air quality level, which can cause respiratory problems and exacerbate existing conditions like asthma. People may experience coughing, wheezing, and shortness of breath. Prolonged exposure can lead to more severe health issues.",
+    "generated_precautions": [
+      "Avoid outdoor activities, especially those that cause heavy breathing",
+      "Wear a mask with a filter to reduce particulate matter inhalation",
+      "Keep windows and doors closed to prevent indoor air pollution",
+      "Use air purifiers to minimize indoor air contaminants"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 250,
+    "category": "Very Unhealthy",
+    "rouge_l": 0.11267605633802817,
+    "cosine_sim": 0.43781358003616333,
+    "precaution_overlap": 0.6,
+    "latency": 0.903,
+    "generated_summary": "An AQI of 250 indicates a very unhealthy air quality level, which can cause serious health problems for everyone, especially for sensitive groups such as the elderly, children, and people with respiratory conditions. Prolonged exposure can lead to respiratory issues, cardiovascular problems, and other health complications. It is essential to take precautions to minimize exposure to such poor air quality.",
+    "generated_precautions": [
+      "Avoid outdoor activities, especially those that cause heavy breathing, such as running or biking",
+      "Stay indoors with windows and doors closed to prevent outdoor air from entering",
+      "Use air purifiers and wear a mask rated N95 or higher when going outside is unavoidable"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 350,
+    "category": "Hazardous",
+    "rouge_l": 0.15094339622641506,
+    "cosine_sim": 0.4816629886627197,
+    "precaution_overlap": 0.3333333333333333,
+    "latency": 0.671,
+    "generated_summary": "An AQI value of 350, categorized as Hazardous, poses significant health risks to everyone, especially those with pre-existing medical conditions. Prolonged exposure can lead to serious respiratory and cardiovascular issues. It is crucial to take immediate action to minimize exposure.",
+    "generated_precautions": [
+      "Avoid all outdoor activities, especially those that cause heavy breathing, such as running or cycling",
+      "Stay indoors with windows and doors sealed to prevent outdoor air from entering",
+      "Use air purifiers and wear N95 masks if you must go outside to filter out harmful pollutants"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 45,
+    "category": "Good",
+    "rouge_l": 0.3508771929824562,
+    "cosine_sim": 0.5161567330360413,
+    "precaution_overlap": 0.3333333333333333,
+    "latency": 0.517,
+    "generated_summary": "An AQI value of 45 indicates good air quality, posing little to no risk to health. At this level, air quality is satisfactory, and air pollution poses little or no risk. People can continue with their daily activities without concern for air quality-related health issues.",
+    "generated_precautions": [
+      "None necessary, but maintaining good overall health is always recommended",
+      "Stay hydrated by drinking plenty of water",
+      "Continue usual outdoor activities without concern for air quality"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 95,
+    "category": "Moderate",
+    "rouge_l": 0.225,
+    "cosine_sim": 0.631877064704895,
+    "precaution_overlap": 1.0,
+    "latency": 1.194,
+    "generated_summary": "An AQI value of 95, categorized as Moderate, indicates that air quality is acceptable but may cause issues for sensitive groups such as people with respiratory diseases. It can cause some discomfort to the general public, and particularly, individuals with lung disease, older adults, and children should limit prolonged or heavy exertion. People with asthma should follow their asthma action plans and keep quick-relief medicine handy.",
+    "generated_precautions": [
+      "Avoid heavy or prolonged outdoor exertion, especially if you have respiratory issues",
+      "Keep windows and doors closed to prevent outdoor air from entering your home",
+      "Use air purifiers if available, especially in rooms where you spend most of your time",
+      "Consider wearing a mask rated FFP2 or equivalent when outdoors for extended periods"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 145,
+    "category": "Unhealthy for Sensitive Groups",
+    "rouge_l": 0.2318840579710145,
+    "cosine_sim": 0.5436601042747498,
+    "precaution_overlap": 0.3333333333333333,
+    "latency": 1.045,
+    "generated_summary": "An AQI of 145 indicates that the air quality is unhealthy for sensitive groups, including people with heart or lung disease, older adults, and children. At this level, these individuals may experience health effects such as respiratory symptoms, and should limit their time outdoors. Everyone else may also start to notice adverse health effects.",
+    "generated_precautions": [
+      "Avoid outdoor activities that cause heavy breathing, such as running or biking",
+      "Keep windows and doors closed to prevent polluted air from entering homes",
+      "Use air purifiers indoors to reduce exposure to particulate matter",
+      "Wear a mask rated N95 or higher when outdoors to filter out pollutants",
+      "Reschedule outdoor activities for a time when the air quality improves"
+    ],
+    "error": null
+  },
+  {
+    "aqi": 195,
+    "category": "Unhealthy",
+    "rouge_l": 0.19999999999999998,
+    "cosine_sim": 0.3744571805000305,
+    "precaution_overlap": 0.5,
+    "latency": 0.871,
+    "generated_summary": "An AQI value of 195 indicates an unhealthy air quality level, which can cause respiratory problems and other health issues, especially for sensitive groups such as children, older adults, and people with pre-existing medical conditions. At this level, even healthy individuals may experience some adverse health effects. Prolonged exposure can lead to more severe health complications.",
+    "generated_precautions": [
+      "Avoid outdoor activities, especially those that cause heavy breathing, such as running or biking",
+      "Keep windows and doors closed to prevent polluted air from entering homes and vehicles",
+      "Wear a mask rated N95 or N100 when outdoors to filter out fine particles and pollutants",
+      "Consider using air purifiers indoors to reduce exposure to pollutants",
+      "Schedule outdoor activities for times when the AQI is forecasted to be lower"
+    ],
+    "error": null
+  }
+]
