@@ -34,6 +34,7 @@ nosetests.xml
 
 # ==================== MLFLOW ====================
 mlruns/
+mlartifacts/
 mlflow-artifacts/
 *.db
 *.db-shm
