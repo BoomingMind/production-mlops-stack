@@ -5,6 +5,8 @@ import time
 
 from dotenv import load_dotenv
 
+from groq import Groq
+
 from prompts import PromptStrategy, get_aqi_category, PromptLoader
 
 load_dotenv()
@@ -40,9 +42,8 @@ class AQIAdvisor:
             )
         
         try:
-            import openai
-            self.client = openai.OpenAI(api_key=api_key)
-            print(f"OpenAI client initialized with model: {model}")
+            self.client = Groq(api_key=api_key)
+            print(f"Groq client initialized with model: {model}")
 
         except ImportError:
             raise ImportError(
@@ -121,17 +122,11 @@ class AQIAdvisor:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a helpful air quality health advisor. Always respond with valid JSON only, no additional text."
-                    },
-                    {
-                        "role": "user", 
-                        "content": prompt
-                    }
+                    {"role": "system", "content": "You are a helpful air quality health advisor. Always respond with valid JSON only, no additional text."},
+                    {"role": "user", "content": prompt}
                 ],
                 temperature=self.temperature,
-                max_tokens=500,  # Enough for summary + precautions
+                max_tokens=500,
             )
             
             latency = time.time() - start_time
@@ -185,7 +180,26 @@ class AQIAdvisor:
                 }
             }
 
+    def generate_advisory_all_strategies(self, aqi_value: float, aqi_category: Optional[str] = None) -> Dict:
+        """
+        Generate advisories using all available strategies.
+        
+        Useful for comparison and evaluation.
+        """
+        results = {}
+        for strategy in PromptStrategy:
+            results[strategy.value] = self.generate_advisory(
+                aqi_value,
+                strategy
+            )
+        return results
+    
+
 if __name__ == "__main__":
-    strategy = PromptStrategy.ZERO_SHOT
-    aqi_advisor = AQIAdvisor("gpt-3.5-turbo", 0.3)
-    aqi_advisor.generate_advisory(95,strategy)
+    # testing zero shot
+    # strategy = PromptStrategy.ZERO_SHOT
+    aqi_advisor = AQIAdvisor("llama-3.3-70b-versatile", 0.3)
+    # print(aqi_advisor.generate_advisory(95,strategy))
+
+    # all strategies output:
+    results = aqi_advisor.generate_advisory_all_strategies(95)

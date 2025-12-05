@@ -23,7 +23,6 @@ class PromptStrategy(Enum):
     - META_PROMPT
     """
     ZERO_SHOT = "zero_shot"
-    # These will be added later:
     FEW_SHOT_K3 = "few_shot_k3"
     FEW_SHOT_K5 = "few_shot_k5"
     CHAIN_OF_THOUGHT = "chain_of_thought"
