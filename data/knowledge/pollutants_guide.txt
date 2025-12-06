@@ -1,0 +1,158 @@
+# Common Air Pollutants and Their Health Effects
+
+## Particulate Matter (PM)
+
+### PM2.5 (Fine Particulate Matter)
+Particles smaller than 2.5 micrometers in diameter.
+
+**Sources:**
+- Vehicle exhaust and diesel engines
+- Power plants burning fossil fuels
+- Industrial processes
+- Wildfires and wood burning
+- Cooking and heating
+- Dust from construction and agriculture
+
+**Health Effects:**
+- Penetrates deep into lungs and bloodstream
+- Aggravates asthma and causes respiratory symptoms
+- Contributes to cardiovascular disease
+- May cause irregular heartbeat
+- Associated with premature death
+- Long-term exposure linked to lung cancer
+
+**Who is at risk:**
+- Children (developing lungs)
+- Elderly (reduced lung function)
+- People with heart disease
+- People with lung disease (asthma, COPD)
+- Pregnant women (effects on fetus)
+
+### PM10 (Coarse Particulate Matter)
+Particles between 2.5 and 10 micrometers in diameter.
+
+**Sources:**
+- Dust from roads and construction
+- Agricultural activities
+- Mining operations
+- Pollen and mold spores
+
+**Health Effects:**
+- Irritates airways
+- Triggers asthma attacks
+- Causes coughing and difficulty breathing
+- Less dangerous than PM2.5 but still harmful
+
+## Ground-Level Ozone (O3)
+
+Formed when pollutants from vehicles, power plants, and industrial sources react with sunlight.
+
+**Peak Times:**
+- Warm, sunny afternoons
+- Summer months
+- Urban areas with heavy traffic
+
+**Health Effects:**
+- Reduces lung function
+- Triggers asthma attacks
+- Causes chest pain, coughing, throat irritation
+- Makes lungs more susceptible to infection
+- Aggravates chronic lung diseases
+- May cause permanent lung damage with long-term exposure
+
+**Protection Tips:**
+- Limit outdoor activities during peak ozone hours (afternoon)
+- Exercise in the morning or evening
+- Avoid areas near heavy traffic
+
+## Carbon Monoxide (CO)
+
+Colorless, odorless gas from incomplete combustion.
+
+**Sources:**
+- Vehicle exhaust
+- Fuel-burning appliances
+- Tobacco smoke
+- Fires and wildfires
+
+**Health Effects:**
+- Reduces oxygen delivery to organs
+- Causes headaches and dizziness
+- Impairs vision and concentration
+- At high levels: confusion, unconsciousness, death
+- Especially dangerous for people with heart disease
+
+## Nitrogen Dioxide (NO2)
+
+Reddish-brown gas with sharp odor.
+
+**Sources:**
+- Vehicle emissions
+- Power plants
+- Industrial facilities
+- Kerosene heaters
+- Gas stoves
+
+**Health Effects:**
+- Irritates airways
+- Aggravates respiratory conditions
+- Contributes to asthma development in children
+- Increases susceptibility to respiratory infections
+- Forms ground-level ozone and particulate matter
+
+## Sulfur Dioxide (SO2)
+
+Colorless gas with sharp smell.
+
+**Sources:**
+- Burning fossil fuels (coal, oil)
+- Industrial processes
+- Volcanoes
+
+**Health Effects:**
+- Irritates nose, throat, airways
+- Causes coughing and wheezing
+- Aggravates asthma
+- Contributes to acid rain
+- Forms particulate matter in atmosphere
+
+## Volatile Organic Compounds (VOCs)
+
+Gases emitted from various solids and liquids.
+
+**Sources:**
+- Paints and solvents
+- Cleaning products
+- Pesticides
+- Building materials
+- Gasoline and vehicle emissions
+- Personal care products
+
+**Health Effects:**
+- Eye, nose, throat irritation
+- Headaches and nausea
+- Liver and kidney damage (long-term)
+- Some VOCs are carcinogenic
+- Contributes to ozone formation
+
+## Indoor Air Pollutants
+
+Indoor air can be 2-5 times more polluted than outdoor air.
+
+**Common Indoor Pollutants:**
+- Radon (from soil)
+- Environmental tobacco smoke
+- Mold and mildew
+- Pet dander
+- Dust mites
+- Cleaning products
+- Carbon monoxide (faulty appliances)
+
+**Improving Indoor Air Quality:**
+- Increase ventilation (when outdoor air is clean)
+- Use air purifiers with HEPA filters
+- Control humidity (30-50%)
+- Avoid smoking indoors
+- Regular cleaning and dusting
+- Proper maintenance of HVAC systems
+- Use low-VOC products

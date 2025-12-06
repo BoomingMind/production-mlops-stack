@@ -1,4 +1,4 @@
-.PHONY: help dev install test lint docker run stop clean evidently audit security
+.PHONY: help dev install test lint docker run stop clean evidently audit security rag rag-ingest rag-serve
 
 help:
 	@echo "Available targets:"
@@ -11,6 +11,9 @@ help:
 	@echo "  make stop       - Stop all services"
 	@echo "  make evidently  - Start Evidently dashboard"
 	@echo "  make clean      - Clean temporary files"
+	@echo "  make rag        - Run full RAG pipeline (ingest + serve)"
+	@echo "  make rag-ingest - Ingest documents into ChromaDB"
+	@echo "  make rag-serve  - Start Flask API with RAG endpoints"
 
 dev: install
 	@echo "Setting up development environment..."
@@ -101,3 +104,35 @@ mlflow:
 api:
 	@echo "Starting FastAPI server..."
 	uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+
+# =============================================================================
+# RAG Pipeline Targets
+# =============================================================================
+
+rag: rag-ingest rag-serve
+	@echo "RAG pipeline complete!"
+
+rag-ingest:
+	@echo "=============================================="
+	@echo "Ingesting documents into ChromaDB..."
+	@echo "=============================================="
+	python src/ingest.py
+	@echo ""
+	@echo "✅ Document ingestion complete!"
+
+rag-serve:
+	@echo "=============================================="
+	@echo "Starting Flask API with RAG endpoints..."
+	@echo "=============================================="
+	@echo "API will be available at http://localhost:8000"
+	@echo ""
+	@echo "RAG Endpoints:"
+	@echo "  POST /api/rag/query   - Ask questions about air quality"
+	@echo "  GET  /api/rag/sources - List indexed documents"
+	@echo ""
+	python src/app.py
+
+rag-clean:
+	@echo "Cleaning ChromaDB data..."
+	rm -rf data/chromadb
+	@echo "✅ ChromaDB data cleared"

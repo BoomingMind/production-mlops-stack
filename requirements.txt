@@ -45,3 +45,9 @@ pip-audit==2.6.3
 # ==================== Utilities ====================
 requests>=2.32.0  # Updated for evidently compatibility
 openai>=1.0.0
+
+# ==================== RAG Pipeline ====================
+chromadb>=0.5.0  # Requires 0.5+ for NumPy 2.x compatibility
+pypdf>=3.17.0
+sentence-transformers>=2.2.0
+groq>=0.4.0

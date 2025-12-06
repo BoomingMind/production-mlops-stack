@@ -12,6 +12,10 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# RAG imports (lazy loading to avoid startup issues)
+rag_retriever = None
+rag_generator = None
+
 app = Flask(__name__)
 
 # Global variables to store model, scaler, and data
@@ -204,13 +208,15 @@ def home():
     return jsonify(
         {
             "message": "AQI Prediction API",
-            "version": "1.0",
+            "version": "2.0",
             "endpoints": {
                 "/health": "Health check endpoint",
                 "/api/predict": "Get AQI predictions (query params: days=1-7)",
                 "/api/predict/hourly": "Get hourly predictions (query params: hours=1-168)",
                 "/api/predict/daily": "Get daily summary predictions (query params: days=1-7)",
                 "/api/predict/current": "Get prediction for the next hour",
+                "/api/rag/query": "POST - Ask questions about air quality (RAG)",
+                "/api/rag/sources": "GET - List indexed knowledge sources",
             },
         }
     )
@@ -488,6 +494,124 @@ def predict_current():
                 },
             }
         )
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# =============================================================================
+# RAG (Retrieval-Augmented Generation) Endpoints
+# =============================================================================
+
+def load_rag_components():
+    """Lazy load RAG components."""
+    global rag_retriever, rag_generator
+    
+    if rag_retriever is None or rag_generator is None:
+        try:
+            # Add project root to path for imports
+            import sys
+            from pathlib import Path
+            
+            project_root = Path(__file__).parent.parent
+            if str(project_root) not in sys.path:
+                sys.path.insert(0, str(project_root))
+            
+            from src.rag.retriever import DocumentRetriever
+            from src.rag.generator import ResponseGenerator
+            
+            rag_retriever = DocumentRetriever()
+            rag_generator = ResponseGenerator()
+            return True
+        except Exception as e:
+            print(f"❌ Failed to load RAG components: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    return True
+
+
+@app.route("/api/rag/query", methods=["POST"])
+def rag_query():
+    """
+    Query the RAG system with a question about air quality.
+    
+    Request body:
+        {
+            "query": "What precautions should I take when AQI is 150?"
+        }
+    
+    Returns:
+        JSON response with answer and sources
+    """
+    try:
+        # Load RAG components
+        if not load_rag_components():
+            return jsonify({
+                "success": False,
+                "error": "RAG system not available. Run 'make rag-ingest' first."
+            }), 503
+        
+        # Get query from request
+        data = request.get_json()
+        if not data or "query" not in data:
+            return jsonify({
+                "success": False,
+                "error": "Missing 'query' in request body"
+            }), 400
+        
+        query = data["query"]
+        
+        # Retrieve relevant documents
+        context_chunks = rag_retriever.query(query)
+        
+        if not context_chunks:
+            return jsonify({
+                "success": False,
+                "error": "No relevant documents found. Ensure documents are ingested."
+            }), 404
+        
+        # Generate response
+        result = rag_generator.generate(query, context_chunks)
+        
+        return jsonify({
+            "success": result.get("success", False),
+            "query": query,
+            "answer": result.get("answer", ""),
+            "sources_used": result.get("sources_used", []),
+            "confidence": result.get("confidence", "unknown"),
+            "context_chunks_retrieved": result.get("context_chunks", 0),
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/rag/sources")
+def rag_sources():
+    """
+    Get list of indexed document sources.
+    
+    Returns:
+        JSON with collection statistics and sources
+    """
+    try:
+        # Load RAG components
+        if not load_rag_components():
+            return jsonify({
+                "success": False,
+                "error": "RAG system not available. Run 'make rag-ingest' first."
+            }), 503
+        
+        stats = rag_retriever.get_collection_stats()
+        
+        return jsonify({
+            "success": True,
+            "collection_name": stats["collection_name"],
+            "document_count": stats["document_count"],
+            "sources": stats["sources"]
+        })
+        
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

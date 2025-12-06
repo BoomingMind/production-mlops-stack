@@ -1,0 +1,120 @@
+# Health Precautions Based on AQI Levels
+
+## General Recommendations for All AQI Levels
+
+Regardless of AQI levels, these practices help protect your respiratory health:
+- Stay informed about daily air quality forecasts
+- Keep indoor air clean using air purifiers with HEPA filters
+- Keep windows and doors closed when outdoor air quality is poor
+- Avoid using candles, fireplaces, or other sources of indoor combustion
+- Maintain your HVAC system and replace filters regularly
+
+## Precautions by AQI Category
+
+### Good AQI (0-50)
+- No restrictions on outdoor activities
+- Great time for outdoor exercise and recreation
+- Open windows to ventilate your home if desired
+
+### Moderate AQI (51-100)
+- Unusually sensitive individuals should consider reducing prolonged outdoor exertion
+- People with asthma should have rescue inhalers readily available
+- Consider indoor exercise if you experience symptoms
+
+### Unhealthy for Sensitive Groups (101-150)
+Sensitive groups include:
+- Children and teenagers
+- Adults 65 years and older
+- People with lung disease (asthma, COPD)
+- People with heart disease
+- Pregnant women
+- Outdoor workers
+
+Precautions for sensitive groups:
+- Reduce prolonged or heavy outdoor exertion
+- Take more breaks during outdoor activities
+- Watch for symptoms like coughing, shortness of breath
+- Keep quick-relief medicine handy
+
+General public:
+- Consider reducing intense outdoor exercise
+- Opt for indoor alternatives when possible
+
+### Unhealthy AQI (151-200)
+For everyone:
+- Reduce prolonged or heavy exertion outdoors
+- Take more breaks during outdoor activities
+- Schedule outdoor activities for times when air quality is better
+
+For sensitive groups:
+- Avoid prolonged or heavy exertion outdoors
+- Move activities indoors or reschedule
+- Consider wearing N95 masks if outdoor exposure is unavoidable
+
+### Very Unhealthy AQI (201-300)
+For everyone:
+- Avoid prolonged or heavy outdoor exertion
+- Move physical activities indoors
+- Reduce exercise intensity
+
+For sensitive groups:
+- Avoid all outdoor physical activity
+- Stay indoors with windows and doors closed
+- Run air purifiers if available
+- Seek medical attention if experiencing symptoms
+
+### Hazardous AQI (301+)
+For everyone:
+- Avoid all outdoor physical activity
+- Stay indoors with doors and windows closed
+- Use air purifiers with HEPA filters
+- Create a clean room if possible
+- Wear N95 masks if outdoor exposure is absolutely necessary
+
+Emergency precautions:
+- Have emergency supplies ready (medication, water, food)
+- Monitor news and emergency alerts
+- Be prepared to evacuate if conditions worsen
+- Seek medical attention immediately for severe symptoms
+
+## Symptoms to Watch For
+
+During poor air quality, monitor for these symptoms:
+- Coughing or throat irritation
+- Shortness of breath or difficulty breathing
+- Chest tightness or pain
+- Wheezing
+- Unusual fatigue
+- Headache
+- Eye, nose, or throat irritation
+- Dizziness
+
+If symptoms persist or worsen, seek medical attention.
+
+## Special Considerations
+
+### For Children
+- Children breathe more rapidly and are more active outdoors
+- Their lungs are still developing, making them more vulnerable
+- Limit outdoor playtime during high AQI days
+- Ensure schools have air quality policies
+
+### For Elderly
+- Age-related decline in lung function increases vulnerability
+- Pre-existing conditions may be aggravated
+- Limit outdoor activities and stay cool indoors
+- Have medications readily available
+
+### For Outdoor Workers
+- Monitor local AQI regularly throughout the day
+- Take frequent breaks in clean air environments
+- Wear appropriate respiratory protection (N95 or better)
+- Increase water intake
+- Report symptoms to supervisors
+
+### For Athletes and Active Individuals
+- Check AQI before outdoor workouts
+- Exercise early morning when ozone levels are typically lower
+- Reduce workout intensity on poor air quality days
+- Consider indoor alternatives (gym, indoor pool)
+- Avoid exercising near high-traffic areas
