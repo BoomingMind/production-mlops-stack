@@ -37,6 +37,31 @@ class RAGConfig:
     # ChromaDB batch settings (ensure batch size <= chromadb max)
     MAX_BATCH_SIZE = 5000
     
+    # ==========================================================================
+    # Guardrails Settings
+    # ==========================================================================
+    
+    # Input Guards
+    ENABLE_INPUT_GUARDRAILS = True
+    ENABLE_PII_DETECTION = True
+    ENABLE_PROMPT_INJECTION_FILTER = True
+    ENABLE_TOPIC_FILTER = True
+    SANITIZE_PII = True  # If True, redact PII instead of blocking
+    
+    # Output Guards
+    ENABLE_OUTPUT_GUARDRAILS = True
+    ENABLE_TOXICITY_FILTER = True
+    ENABLE_HALLUCINATION_FILTER = True
+    TOXICITY_THRESHOLD = 0.5  # Score threshold (0-1)
+    HALLUCINATION_THRESHOLD = 0.5  # Score threshold (0-1)
+    STRICT_SOURCE_CHECK = True  # Verify cited sources exist
+    LOW_CONFIDENCE_THRESHOLD = 0.3  # Block if confidence below this
+    
+    # Guardrail Logging
+    ENABLE_GUARDRAIL_LOGGING = True
+    ENABLE_PROMETHEUS_METRICS = True
+    GUARDRAIL_LOG_FILE = None  # Optional: path to log file
+    
     @classmethod
     def get_groq_api_key(cls) -> str:
         """Get Groq API key from environment."""

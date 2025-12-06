@@ -118,7 +118,7 @@ rag-ingest:
 	@echo "=============================================="
 	python src/ingest.py
 	@echo ""
-	@echo "✅ Document ingestion complete!"
+	@echo "Document ingestion complete!"
 
 rag-serve:
 	@echo "=============================================="
@@ -135,4 +135,4 @@ rag-serve:
 rag-clean:
 	@echo "Cleaning ChromaDB data..."
 	rm -rf data/chromadb
-	@echo "✅ ChromaDB data cleared"
+	@echo "ChromaDB data cleared"

@@ -45,7 +45,7 @@ class DocumentRetriever:
             metadata={"description": "AQI knowledge base"}
         )
         
-        print(f"✅ ChromaDB initialized. Collection: {RAGConfig.COLLECTION_NAME}")
+        print(f"ChromaDB initialized. Collection: {RAGConfig.COLLECTION_NAME}")
         print(f"   Documents in collection: {self.collection.count()}")
     
     def add_documents(

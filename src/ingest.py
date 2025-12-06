@@ -133,13 +133,13 @@ def load_documents(knowledge_dir: Path) -> List[Tuple[str, str]]:
             ext = file_path.suffix.lower()
             
             if ext in text_extensions:
-                print(f"📄 Loading text file: {file_path.name}")
+                print(f"Loading text file: {file_path.name}")
                 content = load_text_file(file_path)
                 if content:
                     documents.append((file_path.name, content))
                     
             elif ext in pdf_extensions:
-                print(f"📕 Loading PDF file: {file_path.name}")
+                print(f"Loading PDF file: {file_path.name}")
                 content = load_pdf_file(file_path)
                 if content:
                     documents.append((file_path.name, content))
@@ -173,14 +173,14 @@ def ingest_documents(clear_existing: bool = True) -> Dict:
         retriever.clear_collection()
     
     # Load documents
-    print(f"\n📂 Loading documents from: {RAGConfig.KNOWLEDGE_DIR}")
+    print(f"\nLoading documents from: {RAGConfig.KNOWLEDGE_DIR}")
     documents = load_documents(RAGConfig.KNOWLEDGE_DIR)
     
     if not documents:
-        print("⚠️  No documents found!")
+        print("No documents found!")
         return {"status": "error", "message": "No documents found"}
     
-    print(f"\n✅ Loaded {len(documents)} documents")
+    print(f"\nLoaded {len(documents)} documents")
     
     # Process each document
     total_chunks = 0
@@ -188,7 +188,7 @@ def ingest_documents(clear_existing: bool = True) -> Dict:
     all_metadatas = []
     
     for filename, content in documents:
-        print(f"\n📝 Processing: {filename}")
+        print(f"\nProcessing: {filename}")
         
         # Chunk the document
         chunks = chunk_text(content)
@@ -206,7 +206,7 @@ def ingest_documents(clear_existing: bool = True) -> Dict:
         total_chunks += len(chunks)
     
     # Store in ChromaDB
-    print(f"\n💾 Storing {total_chunks} chunks in ChromaDB...")
+    print(f"\nStoring {total_chunks} chunks in ChromaDB...")
     retriever.add_documents(all_chunks, all_metadatas)
     
     # Print summary

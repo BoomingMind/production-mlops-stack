@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import os
 import boto3
 import joblib
@@ -17,6 +18,9 @@ rag_retriever = None
 rag_generator = None
 
 app = Flask(__name__)
+
+# Enable CORS for all routes
+CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
 
 # Global variables to store model, scaler, and data
 model = None
@@ -66,7 +70,7 @@ def load_model_and_scaler():
         s3.download_fileobj(Bucket=bucket_name, Key=model_key, Fileobj=model_buffer)
         model_buffer.seek(0)
         model = joblib.load(model_buffer)
-        print("✅ Model loaded successfully")
+        print("Model loaded successfully")
 
         # Load scaler
         print(f"Loading scaler from S3: {bucket_name}/{scaler_key}")
@@ -74,11 +78,11 @@ def load_model_and_scaler():
         s3.download_fileobj(Bucket=bucket_name, Key=scaler_key, Fileobj=scaler_buffer)
         scaler_buffer.seek(0)
         scaler = joblib.load(scaler_buffer)
-        print("✅ Scaler loaded successfully")
+        print("Scaler loaded successfully")
 
         return True
     except Exception as e:
-        print(f"❌ ERROR: Could not load model or scaler from S3: {str(e)}")
+        print(f"ERROR: Could not load model or scaler from S3: {str(e)}")
         return False
 
 
@@ -105,10 +109,10 @@ def load_historical_data():
             col for col in df.columns if col not in target_columns and col != "date"
         ]
 
-        print(f"✅ Historical data loaded: {len(df)} rows, {len(features)} features")
+        print(f"Historical data loaded: {len(df)} rows, {len(features)} features")
         return True
     except Exception as e:
-        print(f"❌ ERROR: Could not load historical data from S3: {str(e)}")
+        print(f"ERROR: Could not load historical data from S3: {str(e)}")
         return False
 
 
@@ -523,7 +527,7 @@ def load_rag_components():
             rag_generator = ResponseGenerator()
             return True
         except Exception as e:
-            print(f"❌ Failed to load RAG components: {e}")
+            print(f"Failed to load RAG components: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -534,6 +538,7 @@ def load_rag_components():
 def rag_query():
     """
     Query the RAG system with a question about air quality.
+    Includes guardrail checks for input validation and output moderation.
     
     Request body:
         {
@@ -541,7 +546,7 @@ def rag_query():
         }
     
     Returns:
-        JSON response with answer and sources
+        JSON response with answer, sources, and guardrail info
     """
     try:
         # Load RAG components
@@ -570,10 +575,11 @@ def rag_query():
                 "error": "No relevant documents found. Ensure documents are ingested."
             }), 404
         
-        # Generate response
+        # Generate response (includes guardrail checks)
         result = rag_generator.generate(query, context_chunks)
         
-        return jsonify({
+        # Build response with guardrail information
+        response_data = {
             "success": result.get("success", False),
             "query": query,
             "answer": result.get("answer", ""),
@@ -581,6 +587,50 @@ def rag_query():
             "confidence": result.get("confidence", "unknown"),
             "context_chunks_retrieved": result.get("context_chunks", 0),
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+        # Add guardrail info if available
+        if "guardrails" in result:
+            response_data["guardrails"] = {
+                "input_validated": result["guardrails"].get("input_check", {}).get("passed", True),
+                "output_validated": result["guardrails"].get("output_check", {}).get("passed", True) if result["guardrails"].get("output_check") else True,
+                "confidence_score": result["guardrails"].get("confidence_score"),
+                "events": result["guardrails"].get("events", [])
+            }
+        
+        # Add error details if validation failed
+        if not result.get("success") and "error_details" in result:
+            response_data["error"] = result.get("error", "Validation failed")
+            response_data["error_details"] = result.get("error_details", [])
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/rag/guardrails/stats")
+def rag_guardrail_stats():
+    """
+    Get guardrail statistics and metrics.
+    
+    Returns:
+        JSON with guardrail event counts and violation statistics
+    """
+    try:
+        if not load_rag_components():
+            return jsonify({
+                "success": False,
+                "error": "RAG system not available"
+            }), 503
+        
+        stats = rag_generator.get_guardrail_stats()
+        recent_events = rag_generator.get_recent_guardrail_events(10)
+        
+        return jsonify({
+            "success": True,
+            "statistics": stats,
+            "recent_events": recent_events
         })
         
     except Exception as e:
@@ -623,10 +673,10 @@ if __name__ == "__main__":
     print("=" * 60)
 
     if load_model_and_scaler() and load_historical_data():
-        print("\n✅ API Ready!")
+        print("\nAPI Ready!")
         print("=" * 60)
     else:
-        print("\n⚠️  API starting with limited functionality")
+        print("\nAPI starting with limited functionality")
         print("   Model and data will be loaded on first request")
         print("=" * 60)
 
