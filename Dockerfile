@@ -37,11 +37,18 @@ COPY --from=builder ${VENV_PATH} ${VENV_PATH}
 # Create non-root user
 RUN addgroup --system app \
     && adduser --system --ingroup app app \
-    && mkdir -p /app \
+    && mkdir -p /app/src /app/data \
     && chown -R app:app /app
 
-# Copy only the Flask app
-COPY src/app.py ./app.py
+# Copy the entire src directory (includes RAG pipeline, guardrails, etc.)
+COPY --chown=app:app src/ ./src/
+
+# Copy knowledge base for RAG (if exists)
+COPY --chown=app:app data/knowledge/ ./data/knowledge/
+
+# Copy ChromaDB data directory for RAG vector store (if exists)
+# Note: In production, you may want to mount this as a volume instead
+COPY --chown=app:app data/chromadb/ ./data/chromadb/
 
 # Note: .env file is NOT copied - environment variables should be passed at runtime
 # via docker run -e VAR=value or docker-compose environment section
@@ -56,5 +63,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"
 
-# Default command
-CMD ["python", "app.py"]
+# Default command - run from src directory
+CMD ["python", "src/app.py"]
