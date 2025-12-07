@@ -65,8 +65,8 @@ class RAGConfig:
     @classmethod
     def get_groq_api_key(cls) -> str:
         """Get Groq API key from environment."""
-        # Your existing setup uses OPENAI_API_KEY for Groq
-        api_key = os.getenv("OPENAI_API_KEY")
+        # Check both GROQ_API_KEY and OPENAI_API_KEY for compatibility
+        api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise ValueError("OPENAI_API_KEY not found in environment")
+            raise ValueError("GROQ_API_KEY or OPENAI_API_KEY not found in environment")
         return api_key
