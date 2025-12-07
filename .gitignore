@@ -58,6 +58,10 @@ data/chromadb/
 # Keep directory structure with .gitkeep
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/chromadb/.gitkeep
+
+# Knowledge base files are tracked for RAG pipeline
+!data/knowledge/
 
 # ==================== MODELS ====================
 # Exclude trained models (use DVC or S3 instead)

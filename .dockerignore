@@ -29,7 +29,6 @@ Thumbs.db
 mlruns/
 mlflow-artifacts/
 notebooks/
-data/
 *.ipynb
 *.csv
 *.pkl
@@ -38,6 +37,12 @@ data/
 *.json
 !requirements.txt
 !src/**/*.py
+
+# Data - exclude most but keep knowledge base for RAG
+data/raw/
+data/processed/
+data/eval.jsonl
+# Note: data/knowledge/ is included for RAG pipeline
 
 # Git
 .git/
