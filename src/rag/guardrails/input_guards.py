@@ -110,6 +110,18 @@ class InputGuard:
          "Security/hacking related query"),
         (r"\b(?:bomb|weapon|drug|illegal)\b",
          "Potentially harmful content"),
+        # Off-topic general queries not related to AQI/air quality/health
+        (r"^\s*(?:tell\s+me\s+a?\s*joke|joke\s*(?:please|pls)?|make\s+me\s+laugh)\s*[.!?]*\s*$",
+         "Off-topic: joke request"),
+        (r"^\s*(?:write\s+(?:me\s+)?(?:a\s+)?(?:poem|story|essay|code|script))",
+         "Off-topic: creative writing request"),
+        (r"^\s*(?:what\s+is\s+(?:the\s+)?(?:capital|population|president|king|queen)\s+of)",
+         "Off-topic: general knowledge question"),
+        (r"^\s*(?:how\s+to\s+(?:cook|bake|make\s+(?:money|food|cake)))",
+         "Off-topic: cooking/general how-to"),
+        # Catch queries that don't mention air quality related terms
+        (r"^(?!.*(aqi|air\s*quality|pollution|pollutant|smog|pm2\.?5|pm10|ozone|health|respiratory|breathing|lung|asthma|precaution|outdoor|indoor|mask|sensitive|hazardous|unhealthy|moderate|good)).*\b(joke|funny|laugh|recipe|cook|capital|president|movie|song|weather\s+forecast|stock|crypto|bitcoin)\b",
+         "Off-topic: query not related to air quality"),
     ]
     
     def __init__(
