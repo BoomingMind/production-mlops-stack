@@ -37,7 +37,7 @@ from src.rag.guardrails.logger import GuardrailLogger, GuardrailEvent
 __all__ = [
     "InputGuard",
     "InputValidationResult",
-    "OutputGuard", 
+    "OutputGuard",
     "OutputValidationResult",
     "GuardrailLogger",
     "GuardrailEvent",
