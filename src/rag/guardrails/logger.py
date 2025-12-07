@@ -9,8 +9,12 @@ import logging
 import json
 from datetime import datetime
 from dataclasses import dataclass, field, asdict
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 from enum import Enum
+
+if TYPE_CHECKING:
+    from src.rag.guardrails.input_guards import InputValidationResult
+    from src.rag.guardrails.output_guards import OutputValidationResult
 
 # Try to import prometheus_client, fallback gracefully if not available
 try:

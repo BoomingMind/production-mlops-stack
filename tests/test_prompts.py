@@ -11,7 +11,6 @@ import json
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -85,7 +84,7 @@ class TestEvalDataset:
             for line in f:
                 if line.strip():
                     try:
-                        data = json.loads(line)
+                        json.loads(line)  # Validate JSON format
                         line_count += 1
                     except json.JSONDecodeError:
                         pytest.fail(f"Invalid JSON on line {line_count + 1}")

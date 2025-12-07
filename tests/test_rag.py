@@ -11,8 +11,7 @@ Tests cover:
 import json
 import os
 import sys
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 

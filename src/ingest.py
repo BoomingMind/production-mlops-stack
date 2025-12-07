@@ -14,7 +14,6 @@ Usage:
     make rag-ingest
 """
 
-import os
 import sys
 from pathlib import Path
 from typing import List, Dict, Tuple
@@ -23,8 +22,8 @@ from typing import List, Dict, Tuple
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.rag.config import RAGConfig
-from src.rag.retriever import DocumentRetriever
+from src.rag.config import RAGConfig  # noqa: E402
+from src.rag.retriever import DocumentRetriever  # noqa: E402
 
 
 def load_text_file(file_path: Path) -> str:

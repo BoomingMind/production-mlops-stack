@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Dict, Any, Optional
 import time
 
 from dotenv import load_dotenv
@@ -104,7 +104,7 @@ class AQIAdvisor:
             }
         """
 
-        if aqi_category == None:
+        if aqi_category is None:
             aqi_category = get_aqi_category(aqi_value)
 
         # Load and format the prompt
