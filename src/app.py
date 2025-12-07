@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import os
 import boto3
 import joblib
@@ -12,7 +13,17 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# RAG imports (lazy loading to avoid startup issues)
+rag_retriever = None
+rag_generator = None
+rag_input_guard = None
+rag_output_guard = None
+rag_guardrail_logger = None
+
 app = Flask(__name__)
+
+# Enable CORS for all routes
+CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
 
 # Global variables to store model, scaler, and data
 model = None
@@ -62,7 +73,7 @@ def load_model_and_scaler():
         s3.download_fileobj(Bucket=bucket_name, Key=model_key, Fileobj=model_buffer)
         model_buffer.seek(0)
         model = joblib.load(model_buffer)
-        print("✅ Model loaded successfully")
+        print("Model loaded successfully")
 
         # Load scaler
         print(f"Loading scaler from S3: {bucket_name}/{scaler_key}")
@@ -70,11 +81,11 @@ def load_model_and_scaler():
         s3.download_fileobj(Bucket=bucket_name, Key=scaler_key, Fileobj=scaler_buffer)
         scaler_buffer.seek(0)
         scaler = joblib.load(scaler_buffer)
-        print("✅ Scaler loaded successfully")
+        print("Scaler loaded successfully")
 
         return True
     except Exception as e:
-        print(f"❌ ERROR: Could not load model or scaler from S3: {str(e)}")
+        print(f"ERROR: Could not load model or scaler from S3: {str(e)}")
         return False
 
 
@@ -101,10 +112,10 @@ def load_historical_data():
             col for col in df.columns if col not in target_columns and col != "date"
         ]
 
-        print(f"✅ Historical data loaded: {len(df)} rows, {len(features)} features")
+        print(f"Historical data loaded: {len(df)} rows, {len(features)} features")
         return True
     except Exception as e:
-        print(f"❌ ERROR: Could not load historical data from S3: {str(e)}")
+        print(f"ERROR: Could not load historical data from S3: {str(e)}")
         return False
 
 
@@ -204,13 +215,15 @@ def home():
     return jsonify(
         {
             "message": "AQI Prediction API",
-            "version": "1.0",
+            "version": "2.0",
             "endpoints": {
                 "/health": "Health check endpoint",
                 "/api/predict": "Get AQI predictions (query params: days=1-7)",
                 "/api/predict/hourly": "Get hourly predictions (query params: hours=1-168)",
                 "/api/predict/daily": "Get daily summary predictions (query params: days=1-7)",
                 "/api/predict/current": "Get prediction for the next hour",
+                "/api/rag/query": "POST - Ask questions about air quality (RAG)",
+                "/api/rag/sources": "GET - List indexed knowledge sources",
             },
         }
     )
@@ -492,6 +505,249 @@ def predict_current():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# =============================================================================
+# RAG (Retrieval-Augmented Generation) Endpoints
+# =============================================================================
+
+def load_rag_components():
+    """Lazy load RAG components including guardrails."""
+    global rag_retriever, rag_generator, rag_input_guard, rag_output_guard, rag_guardrail_logger
+    
+    if rag_retriever is None or rag_generator is None:
+        try:
+            # Add project root to path for imports
+            import sys
+            from pathlib import Path
+            # `app.py` lives in `src/` so the project root is one level up
+            project_root = Path(__file__).resolve().parent.parent
+            # Insert project root at front of sys.path so `import src.*` works
+            if str(project_root) not in sys.path:
+                sys.path.insert(0, str(project_root))
+            
+            from src.rag.retriever import DocumentRetriever
+            from src.rag.generator import ResponseGenerator
+            from src.rag.guardrails import InputGuard, OutputGuard, GuardrailLogger
+            
+            rag_retriever = DocumentRetriever()
+            rag_generator = ResponseGenerator()
+            rag_input_guard = InputGuard()
+            rag_output_guard = OutputGuard()
+            rag_guardrail_logger = GuardrailLogger()
+            print("✅ Guardrails initialized: InputGuard, OutputGuard, GuardrailLogger")
+            return True
+        except Exception as e:
+            print(f"Failed to load RAG components: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    return True
+
+
+@app.route("/api/rag/query", methods=["POST"])
+def rag_query():
+    """
+    Query the RAG system with a question about air quality.
+    Includes guardrail checks for input validation and output moderation.
+    
+    Request body:
+        {
+            "query": "What precautions should I take when AQI is 150?"
+        }
+    
+    Returns:
+        JSON response with answer, sources, and guardrail info
+    """
+    try:
+        # Load RAG components
+        if not load_rag_components():
+            return jsonify({
+                "success": False,
+                "error": "RAG system not available. Run 'make rag-ingest' first."
+            }), 503
+        
+        # Get query from request
+        data = request.get_json()
+        if not data or "query" not in data:
+            return jsonify({
+                "success": False,
+                "error": "Missing 'query' in request body"
+            }), 400
+        
+        query = data["query"]
+        guardrail_events = []
+        
+        # =================================================================
+        # INPUT VALIDATION (Guardrails Layer 1)
+        # =================================================================
+        input_result = rag_input_guard.validate(query)
+        rag_guardrail_logger.log_input_result(input_result)
+        
+        if not input_result.passed:
+            # Log the blocked input event
+            guardrail_events.append({
+                "stage": "input",
+                "passed": False,
+                "violations": [v.value for v in input_result.violations],
+                "details": input_result.violation_details
+            })
+            
+            return jsonify({
+                "success": False,
+                "error": "Query blocked by input guardrails",
+                "error_details": input_result.violation_details,
+                "guardrails": {
+                    "input_validated": False,
+                    "output_validated": None,
+                    "violations": [v.value for v in input_result.violations],
+                    "events": guardrail_events
+                },
+                "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }), 400
+        
+        # Use sanitized input if PII was redacted
+        processed_query = input_result.sanitized_input or query
+        
+        guardrail_events.append({
+            "stage": "input",
+            "passed": True,
+            "sanitized": input_result.sanitized_input is not None
+        })
+        
+        # Retrieve relevant documents
+        context_chunks = rag_retriever.query(processed_query)
+        
+        if not context_chunks:
+            return jsonify({
+                "success": False,
+                "error": "No relevant documents found. Ensure documents are ingested."
+            }), 404
+        
+        # Generate response
+        result = rag_generator.generate(processed_query, context_chunks)
+        
+        if not result.get("success"):
+            return jsonify({
+                "success": False,
+                "error": result.get("answer", "Generation failed"),
+                "guardrails": {
+                    "input_validated": True,
+                    "output_validated": None,
+                    "events": guardrail_events
+                }
+            }), 500
+        
+        # =================================================================
+        # OUTPUT VALIDATION (Guardrails Layer 2)
+        # =================================================================
+        output_result = rag_output_guard.validate(
+            response=result.get("answer", ""),
+            context_chunks=context_chunks,
+            claimed_sources=result.get("sources_used", []),
+            confidence=result.get("confidence")
+        )
+        rag_guardrail_logger.log_output_result(output_result)
+        
+        guardrail_events.append({
+            "stage": "output",
+            "passed": output_result.passed,
+            "confidence_score": output_result.confidence_score,
+            "violations": [v.value for v in output_result.violations] if output_result.violations else []
+        })
+        
+        if not output_result.passed:
+            return jsonify({
+                "success": False,
+                "error": "Response blocked by output guardrails",
+                "error_details": output_result.violation_details,
+                "guardrails": {
+                    "input_validated": True,
+                    "output_validated": False,
+                    "violations": [v.value for v in output_result.violations],
+                    "confidence_score": output_result.confidence_score,
+                    "events": guardrail_events
+                },
+                "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }), 400
+        
+        # Build successful response with guardrail information
+        response_data = {
+            "success": True,
+            "query": query,
+            "answer": result.get("answer", ""),
+            "sources_used": result.get("sources_used", []),
+            "confidence": result.get("confidence", "unknown"),
+            "context_chunks_retrieved": result.get("context_chunks", 0),
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "guardrails": {
+                "input_validated": True,
+                "output_validated": True,
+                "confidence_score": output_result.confidence_score,
+                "events": guardrail_events
+            }
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/rag/guardrails/stats")
+def rag_guardrail_stats():
+    """
+    Get guardrail statistics and metrics.
+    
+    Returns:
+        JSON with guardrail event counts and violation statistics
+    """
+    try:
+        if not load_rag_components():
+            return jsonify({
+                "success": False,
+                "error": "RAG system not available"
+            }), 503
+        
+        stats = rag_guardrail_logger.get_stats()
+        recent_events = rag_guardrail_logger.get_recent_events(10)
+        
+        return jsonify({
+            "success": True,
+            "statistics": stats,
+            "recent_events": recent_events
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/rag/sources")
+def rag_sources():
+    """
+    Get list of indexed document sources.
+    
+    Returns:
+        JSON with collection statistics and sources
+    """
+    try:
+        # Load RAG components
+        if not load_rag_components():
+            return jsonify({
+                "success": False,
+                "error": "RAG system not available. Run 'make rag-ingest' first."
+            }), 503
+        
+        stats = rag_retriever.get_collection_stats()
+        
+        return jsonify({
+            "success": True,
+            "collection_name": stats["collection_name"],
+            "document_count": stats["document_count"],
+            "sources": stats["sources"]
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 if __name__ == "__main__":
     # Load model and data on startup
     print("=" * 60)
@@ -499,10 +755,10 @@ if __name__ == "__main__":
     print("=" * 60)
 
     if load_model_and_scaler() and load_historical_data():
-        print("\n✅ API Ready!")
+        print("\nAPI Ready!")
         print("=" * 60)
     else:
-        print("\n⚠️  API starting with limited functionality")
+        print("\nAPI starting with limited functionality")
         print("   Model and data will be loaded on first request")
         print("=" * 60)
 

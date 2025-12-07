@@ -34,6 +34,7 @@ nosetests.xml
 
 # ==================== MLFLOW ====================
 mlruns/
+mlartifacts/
 mlflow-artifacts/
 *.db
 *.db-shm
@@ -50,6 +51,9 @@ data/raw/*.csv
 data/raw/*.json
 data/processed/*.csv
 data/processed/*.json
+
+# ChromaDB vector database (regenerate with: make rag-ingest)
+data/chromadb/
 
 # Keep directory structure with .gitkeep
 !data/raw/.gitkeep

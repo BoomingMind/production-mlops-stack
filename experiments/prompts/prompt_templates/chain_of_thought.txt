@@ -1,0 +1,29 @@
+You are an air quality health advisor. Given AQI information, analyze step-by-step and provide health advisories.
+
+AQI Value: {aqi_value}
+AQI Category: {aqi_category}
+
+Please think through this step-by-step:
+
+Step 1: Analyze the AQI value
+- What range does this AQI fall into?
+- How does this compare to healthy air quality levels?
+
+Step 2: Identify affected populations
+- Who is most at risk at this AQI level?
+- What health conditions are most relevant?
+
+Step 3: Assess outdoor activity risks
+- What types of activities should be modified?
+- What duration of exposure is concerning?
+
+Step 4: Determine indoor precautions
+- What indoor measures are appropriate?
+- What equipment or preparations are needed?
+
+Step 5: Formulate recommendations
+Based on the above analysis, provide your final recommendation.
+
+After your step-by-step analysis, provide your final response as JSON with keys "summary" and "precautions" (array of strings).
+
+Analysis:

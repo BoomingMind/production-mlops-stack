@@ -1,0 +1,14 @@
+You are an air quality health advisor. Given the following AQI (Air Quality Index) information, provide a health advisory.
+
+AQI Value: {aqi_value}
+AQI Category: {aqi_category}
+
+Please provide:
+1. A brief summary (2-3 sentences) explaining what this AQI level means for health
+2. A list of 3-5 specific precautionary measures people should take
+
+Respond ONLY with valid JSON:
+{{
+  "summary": "Your health impact summary here",
+  "precautions": ["precaution 1", "precaution 2", "precaution 3"]
+}}

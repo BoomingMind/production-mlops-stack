@@ -1,0 +1,72 @@
+# Air Quality Index (AQI) Overview
+
+## What is AQI?
+
+The Air Quality Index (AQI) is a standardized indicator used to communicate how polluted the air currently is or how polluted it is forecast to become. The AQI focuses on health effects you may experience within a few hours or days after breathing polluted air.
+
+The EPA calculates the AQI for five major air pollutants regulated by the Clean Air Act:
+- Ground-level ozone (O3)
+- Particle pollution (PM2.5 and PM10)
+- Carbon monoxide (CO)
+- Sulfur dioxide (SO2)
+- Nitrogen dioxide (NO2)
+
+## AQI Categories and Health Implications
+
+### Good (0-50)
+Air quality is satisfactory, and air pollution poses little or no risk. This is the ideal range for outdoor activities.
+
+### Moderate (51-100)
+Air quality is acceptable. However, there may be a risk for some people, particularly those who are unusually sensitive to air pollution. Active children and adults, and people with respiratory disease such as asthma, should limit prolonged outdoor exertion.
+
+### Unhealthy for Sensitive Groups (101-150)
+Members of sensitive groups may experience health effects. The general public is less likely to be affected. People with heart or lung disease, older adults, children, and people of lower socioeconomic status should reduce prolonged or heavy exertion.
+
+### Unhealthy (151-200)
+Some members of the general public may experience health effects; members of sensitive groups may experience more serious health effects. Everyone should reduce prolonged or heavy exertion. People with heart or lung disease, older adults, children, and people of lower socioeconomic status should avoid prolonged or heavy exertion.
+
+### Very Unhealthy (201-300)
+Health alert: The risk of health effects is increased for everyone. Everyone should avoid prolonged or heavy exertion. People with heart or lung disease, older adults, children, and people of lower socioeconomic status should remain indoors and keep activity levels low.
+
+### Hazardous (301-500)
+Health warning of emergency conditions: everyone is more likely to be affected. Everyone should avoid all outdoor physical activity. People with heart or lung disease, older adults, children, and people of lower socioeconomic status should remain indoors and keep activity levels low.
+
+## Understanding Particulate Matter
+
+### PM2.5 (Fine Particles)
+PM2.5 refers to particles that are 2.5 micrometers or smaller in diameter. These particles are so small that they can penetrate deep into the lungs and even enter the bloodstream. Sources include combustion from vehicles, power plants, wood burning, and industrial processes.
+
+Health effects of PM2.5 exposure include:
+- Aggravated asthma
+- Decreased lung function
+- Increased respiratory symptoms (irritation of airways, coughing, difficulty breathing)
+- Irregular heartbeat
+- Heart attacks
+- Premature death in people with heart or lung disease
+
+### PM10 (Coarse Particles)
+PM10 refers to particles that are 10 micrometers or smaller. These particles can be inhaled into the lungs but typically don't penetrate as deeply as PM2.5. Sources include dust from roads, construction sites, agriculture, and wildfires.
+
+## Ground-Level Ozone
+
+Ground-level ozone is created by chemical reactions between oxides of nitrogen (NOx) and volatile organic compounds (VOC) in the presence of sunlight. Unlike stratospheric ozone (the "ozone layer"), ground-level ozone is harmful to breathe.
+
+Ozone levels are typically highest during warm, sunny afternoons. Sensitive groups include:
+- People with asthma
+- Children
+- Older adults
+- People who are active outdoors
+
+## Daily Variations in Air Quality
+
+Air quality typically follows daily patterns:
+- Morning rush hour: Increased vehicle emissions
+- Midday: Ozone levels may peak on sunny days
+- Evening rush hour: Second peak in emissions
+- Nighttime: Levels often decrease as emissions reduce
+
+Weather conditions significantly affect air quality:
+- High temperatures accelerate ozone formation
+- Stagnant air conditions trap pollutants
+- Rain can temporarily improve air quality by washing particles from the air
+- Wind can disperse pollutants or bring in pollution from other areas
