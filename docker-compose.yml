@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # MLflow Tracking Server
   mlflow:
-    image: ghcr.io/mlflow/mlflow:latest
+    image: ghcr.io/mlflow/mlflow
     container_name: mlflow_server
     ports:
       - "5001:5001"
@@ -88,7 +88,13 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - GROQ_API_KEY=${GROQ_API_KEY}
       - MLFLOW_TRACKING_URI=http://mlflow:5001
+      - FLASK_DEBUG=false
+      - HF_HOME=/tmp/huggingface  # Added: Hugging Face cache directory
+      - TRANSFORMERS_CACHE=/tmp/huggingface  # Added: Transformers cache directory
+    volumes:
+      - ./data:/app/data
     dns:
       - 8.8.8.8
       - 8.8.4.4

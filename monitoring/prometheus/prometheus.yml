@@ -19,12 +19,26 @@ scrape_configs:
         target_label: instance
         replacement: 'host-machine'
 
-  # FastAPI Application (will expose metrics at /metrics)
-  - job_name: 'fastapi-app'
+  # Flask AQI Application (exposes metrics at /metrics)
+  - job_name: 'aqi-api'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['api:8000']
     scrape_interval: 5s
+    scrape_timeout: 5s
+
+  # LLM Metrics (same endpoint, different job for clarity)
+  - job_name: 'llm-metrics'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['api:8000']
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      # Only keep LLM and RAG related metrics for this job
+      - source_labels: [__name__]
+        regex: '(llm_.*|rag_.*|guardrail_.*)'
+        action: keep
 
   # MLflow Server
   - job_name: 'mlflow'
@@ -37,3 +51,7 @@ scrape_configs:
 #   alertmanagers:
 #     - static_configs:
 #         - targets: ['alertmanager:9093']
+
+# Rule files for alerting
+# rule_files:
+#   - "alert_rules.yml"

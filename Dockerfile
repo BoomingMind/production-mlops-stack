@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install dependencies into a virtual environment
 COPY requirements.txt ./requirements.txt
 RUN python -m venv ${VENV_PATH} \
-    && ${VENV_PATH}/bin/pip install --upgrade pip \
+    # && ${VENV_PATH}/bin/pip install --upgrade pip \
     && ${VENV_PATH}/bin/pip install --no-cache-dir -r requirements.txt
 
 # ===== Stage 2: Runtime =====

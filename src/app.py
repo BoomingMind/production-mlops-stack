@@ -1,6 +1,7 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import os
+import time
 import boto3
 import joblib
 import numpy as np
@@ -12,6 +13,16 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+# LLM Monitoring imports
+try:
+    from src.monitoring.llm_metrics import get_llm_metrics, LLMMetrics
+    llm_metrics = get_llm_metrics()
+    METRICS_AVAILABLE = True
+except ImportError:
+    llm_metrics = None
+    METRICS_AVAILABLE = False
+    print("⚠️  LLM metrics module not available")
 
 # RAG imports (lazy loading to avoid startup issues)
 rag_retriever = None
@@ -218,15 +229,61 @@ def home():
             "version": "2.0",
             "endpoints": {
                 "/health": "Health check endpoint",
+                "/metrics": "Prometheus metrics endpoint",
                 "/api/predict": "Get AQI predictions (query params: days=1-7)",
                 "/api/predict/hourly": "Get hourly predictions (query params: hours=1-168)",
                 "/api/predict/daily": "Get daily summary predictions (query params: days=1-7)",
                 "/api/predict/current": "Get prediction for the next hour",
                 "/api/rag/query": "POST - Ask questions about air quality (RAG)",
                 "/api/rag/sources": "GET - List indexed knowledge sources",
+                "/api/rag/guardrails/stats": "GET - Guardrail statistics",
+                "/api/llm/stats": "GET - LLM usage statistics",
             },
         }
     )
+
+
+@app.route("/metrics")
+def metrics():
+    """
+    Prometheus metrics endpoint.
+    
+    Exposes LLM metrics for Prometheus scraping:
+    - Request latency
+    - Token usage
+    - Cost estimation
+    - Guardrail violations
+    - RAG metrics
+    """
+    if not METRICS_AVAILABLE:
+        return "Metrics not available", 503
+    
+    return Response(
+        llm_metrics.get_metrics(),
+        mimetype=llm_metrics.get_content_type()
+    )
+
+
+@app.route("/api/llm/stats")
+def llm_stats():
+    """
+    Get LLM usage statistics.
+    
+    Returns:
+        JSON with current LLM metrics and usage stats
+    """
+    if not METRICS_AVAILABLE:
+        return jsonify({
+            "success": False,
+            "error": "LLM metrics not available"
+        }), 503
+    
+    return jsonify({
+        "success": True,
+        "stats": llm_metrics.get_stats(),
+        "prometheus_enabled": llm_metrics.prometheus_available,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
 
 
 @app.route("/health")
@@ -551,6 +608,7 @@ def rag_query():
     """
     Query the RAG system with a question about air quality.
     Includes guardrail checks for input validation and output moderation.
+    Tracks LLM metrics for monitoring.
 
     Request body:
         {
@@ -560,9 +618,14 @@ def rag_query():
     Returns:
         JSON response with answer, sources, and guardrail info
     """
+    request_start_time = time.time()
+    model_name = "llama-3.3-70b-versatile"  # Default model from config
+    
     try:
         # Load RAG components
         if not load_rag_components():
+            if METRICS_AVAILABLE:
+                llm_metrics.record_rag_query(status="error")
             return (
                 jsonify(
                     {
@@ -583,12 +646,35 @@ def rag_query():
 
         query = data["query"]
         guardrail_events = []
+        metrics_data = {
+            "input_guard_duration": 0,
+            "retrieval_duration": 0,
+            "generation_duration": 0,
+            "output_guard_duration": 0,
+        }
 
         # =================================================================
         # INPUT VALIDATION (Guardrails Layer 1)
         # =================================================================
+        input_guard_start = time.time()
         input_result = rag_input_guard.validate(query)
+        metrics_data["input_guard_duration"] = time.time() - input_guard_start
         rag_guardrail_logger.log_input_result(input_result)
+        
+        # Track input guardrail metrics
+        if METRICS_AVAILABLE:
+            llm_metrics.record_guardrail_check(
+                stage="input",
+                passed=input_result.passed,
+                sanitized=input_result.sanitized_input is not None,
+                duration=metrics_data["input_guard_duration"]
+            )
+            # Record violations if any
+            for violation in input_result.violations:
+                llm_metrics.record_guardrail_violation(
+                    stage="input",
+                    violation_type=violation.value
+                )
 
         if not input_result.passed:
             # Log the blocked input event
@@ -600,6 +686,9 @@ def rag_query():
                     "details": input_result.violation_details,
                 }
             )
+            
+            if METRICS_AVAILABLE:
+                llm_metrics.record_rag_query(status="blocked_input")
 
             return (
                 jsonify(
@@ -630,10 +719,23 @@ def rag_query():
             }
         )
 
-        # Retrieve relevant documents
+        # =================================================================
+        # DOCUMENT RETRIEVAL
+        # =================================================================
+        retrieval_start = time.time()
         context_chunks = rag_retriever.query(processed_query)
+        metrics_data["retrieval_duration"] = time.time() - retrieval_start
+        
+        # Track retrieval metrics
+        if METRICS_AVAILABLE:
+            llm_metrics.record_rag_retrieval(
+                duration=metrics_data["retrieval_duration"],
+                num_documents=len(context_chunks) if context_chunks else 0
+            )
 
         if not context_chunks:
+            if METRICS_AVAILABLE:
+                llm_metrics.record_rag_query(status="no_documents")
             return (
                 jsonify(
                     {
@@ -644,10 +746,32 @@ def rag_query():
                 404,
             )
 
-        # Generate response
+        # =================================================================
+        # LLM RESPONSE GENERATION
+        # =================================================================
+        generation_start = time.time()
         result = rag_generator.generate(processed_query, context_chunks)
+        metrics_data["generation_duration"] = time.time() - generation_start
+        
+        # Track generation metrics
+        if METRICS_AVAILABLE:
+            llm_metrics.record_rag_generation(duration=metrics_data["generation_duration"])
+            
+            # Record token usage if available
+            tokens_used = result.get("tokens_used")
+            if tokens_used:
+                # Estimate input/output split (rough: 70% input, 30% output for RAG)
+                input_tokens = int(tokens_used * 0.7)
+                output_tokens = tokens_used - input_tokens
+                cost = llm_metrics.record_tokens(
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    model=result.get("model", model_name)
+                )
 
         if not result.get("success"):
+            if METRICS_AVAILABLE:
+                llm_metrics.record_rag_query(status="generation_error")
             return (
                 jsonify(
                     {
@@ -666,13 +790,33 @@ def rag_query():
         # =================================================================
         # OUTPUT VALIDATION (Guardrails Layer 2)
         # =================================================================
+        output_guard_start = time.time()
         output_result = rag_output_guard.validate(
             response=result.get("answer", ""),
             context_chunks=context_chunks,
             claimed_sources=result.get("sources_used", []),
             confidence=result.get("confidence"),
         )
+        metrics_data["output_guard_duration"] = time.time() - output_guard_start
         rag_guardrail_logger.log_output_result(output_result)
+        
+        # Track output guardrail metrics
+        if METRICS_AVAILABLE:
+            llm_metrics.record_guardrail_check(
+                stage="output",
+                passed=output_result.passed,
+                duration=metrics_data["output_guard_duration"]
+            )
+            llm_metrics.record_confidence(
+                confidence=output_result.confidence_score,
+                model=result.get("model", model_name)
+            )
+            # Record violations if any
+            for violation in output_result.violations:
+                llm_metrics.record_guardrail_violation(
+                    stage="output",
+                    violation_type=violation.value
+                )
 
         guardrail_events.append(
             {
@@ -686,6 +830,8 @@ def rag_query():
         )
 
         if not output_result.passed:
+            if METRICS_AVAILABLE:
+                llm_metrics.record_rag_query(status="blocked_output")
             return (
                 jsonify(
                     {
@@ -705,6 +851,19 @@ def rag_query():
                 400,
             )
 
+        # Calculate total request duration
+        total_duration = time.time() - request_start_time
+        
+        # Track successful request metrics
+        if METRICS_AVAILABLE:
+            llm_metrics.record_rag_query(status="success")
+            llm_metrics.record_latency(
+                duration=total_duration,
+                model=result.get("model", model_name),
+                endpoint="rag_query",
+                status="success"
+            )
+
         # Build successful response with guardrail information
         response_data = {
             "success": True,
@@ -713,6 +872,7 @@ def rag_query():
             "sources_used": result.get("sources_used", []),
             "confidence": result.get("confidence", "unknown"),
             "context_chunks_retrieved": result.get("context_chunks", 0),
+            "tokens_used": result.get("tokens_used"),
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "guardrails": {
                 "input_validated": True,
@@ -720,11 +880,28 @@ def rag_query():
                 "confidence_score": output_result.confidence_score,
                 "events": guardrail_events,
             },
+            "metrics": {
+                "total_duration_ms": round(total_duration * 1000, 2),
+                "retrieval_duration_ms": round(metrics_data["retrieval_duration"] * 1000, 2),
+                "generation_duration_ms": round(metrics_data["generation_duration"] * 1000, 2),
+                "input_guard_duration_ms": round(metrics_data["input_guard_duration"] * 1000, 2),
+                "output_guard_duration_ms": round(metrics_data["output_guard_duration"] * 1000, 2),
+            }
         }
 
         return jsonify(response_data)
 
     except Exception as e:
+        # Track error metrics
+        if METRICS_AVAILABLE:
+            total_duration = time.time() - request_start_time
+            llm_metrics.record_rag_query(status="error")
+            llm_metrics.record_latency(
+                duration=total_duration,
+                model=model_name,
+                endpoint="rag_query",
+                status="error"
+            )
         return jsonify({"success": False, "error": str(e)}), 500
 
 
