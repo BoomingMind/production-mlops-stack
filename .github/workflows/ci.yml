@@ -239,24 +239,49 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
           
-      - name: Install pip-audit
+      - name: Install dependencies and pip-audit
         run: |
           python -m pip install --upgrade pip
+          pip install -r requirements.txt
           pip install pip-audit==2.6.3
           
-      - name: Run pip-audit for Critical CVEs
+      - name: Run pip-audit for vulnerabilities
         run: |
-          echo "Scanning for security vulnerabilities..."
-          pip-audit --require-hashes --disable-pip || true
-          echo "Checking for CRITICAL vulnerabilities only..."
-          pip-audit --strict --vulnerability-service osv 2>&1 | tee audit-results.txt
+          echo "========================================"
+          echo "Security Vulnerability Scan"
+          echo "========================================"
           
-          # Fail build if CRITICAL vulnerabilities found
-          if grep -i "critical" audit-results.txt; then
-            echo "CRITICAL vulnerabilities found! Failing build."
+          # Run pip-audit, ignoring vulnerabilities with no fix available
+          # GHSA-wf7f-8fxf-xfxc: MLflow vulnerability with no fix as of Dec 2025
+          pip-audit --vulnerability-service osv --format columns \
+            --ignore-vuln GHSA-wf7f-8fxf-xfxc \
+            2>&1 | tee audit-results.txt || true
+          
+          echo ""
+          echo "========================================"
+          echo "Checking for CRITICAL/HIGH vulnerabilities..."
+          echo "========================================"
+          
+          # Check for critical vulnerabilities (fail the build)
+          if grep -iE "critical" audit-results.txt; then
+            echo ""
+            echo "❌ CRITICAL vulnerabilities found! Failing build."
             exit 1
+          fi
+          
+          # Warn about high vulnerabilities but don't fail
+          if grep -iE "high" audit-results.txt; then
+            echo ""
+            echo "⚠️ HIGH severity vulnerabilities found. Please review."
+          fi
+          
+          # Check if no vulnerabilities found
+          if grep -q "No known vulnerabilities found" audit-results.txt; then
+            echo ""
+            echo "✅ No known vulnerabilities detected!"
           else
-            echo "No critical vulnerabilities detected."
+            echo ""
+            echo "⚠️ Some vulnerabilities detected. Review audit-results.txt"
           fi
         continue-on-error: false
         

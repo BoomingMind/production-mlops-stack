@@ -348,3 +348,100 @@ src/rag/guardrails/
 3. **Rate Limiting** - Add per-user rate limits for abuse prevention
 4. **Custom Rules Engine** - Allow runtime rule configuration
 5. **A/B Testing** - Compare guardrail effectiveness with different thresholds
+
+---
+
+## Responsible AI Guidelines
+
+The guardrails system is designed to enforce responsible AI principles throughout the RAG pipeline.
+
+### Core Principles
+
+| Principle | Implementation |
+|-----------|----------------|
+| **Safety** | Toxicity filters block harmful content before it reaches users |
+| **Privacy** | PII detection prevents accidental data exposure |
+| **Accuracy** | Hallucination detection ensures responses are grounded in facts |
+| **Transparency** | Confidence scores indicate response reliability |
+| **Accountability** | All guardrail events are logged for auditing |
+
+### How Guardrails Enforce Responsible AI
+
+#### 1. Preventing Harmful Outputs
+
+The `OutputGuard` implements multiple filters:
+
+```python
+# Toxicity categories blocked:
+- TOXICITY_PROFANITY: Offensive language
+- TOXICITY_HARMFUL: Self-harm or violence
+- TOXICITY_HATE: Discriminatory content
+```
+
+#### 2. Ensuring Factual Accuracy
+
+Hallucination detection verifies that:
+- Claims are supported by retrieved context
+- Sources cited actually exist in the knowledge base
+- Confidence levels meet minimum thresholds
+
+```python
+# Hallucination indicators flagged:
+HALLUCINATION_INDICATORS = [
+    "I don't have information about",
+    "I cannot find",
+    "Based on my training data",  # Should use context, not training
+    "I think",  # Uncertainty without evidence
+]
+```
+
+#### 3. Protecting User Privacy
+
+Input guards automatically handle PII:
+- Email addresses → `[EMAIL_REDACTED]`
+- Phone numbers → `[PHONE_REDACTED]`
+- SSN/Credit cards → Query blocked entirely
+
+#### 4. Maintaining Domain Focus
+
+Topic filtering ensures the AI stays within its expertise:
+
+```python
+AQI_KEYWORDS = [
+    "aqi", "air quality", "pollution", "pollutant",
+    "pm2.5", "pm10", "ozone", "health", "precaution",
+    "breathing", "respiratory", "smog", "haze",
+]
+```
+
+Off-topic queries receive a polite refusal rather than potentially incorrect information.
+
+### Compliance Mapping
+
+| Framework | Guardrail Coverage |
+|-----------|-------------------|
+| **NIST AI RMF** | Risk identification via input/output validation |
+| **EU AI Act** | Transparency through confidence scoring |
+| **OWASP LLM Top 10** | Prompt injection, data leakage prevention |
+
+### Monitoring Responsible AI
+
+Track guardrail effectiveness via metrics:
+
+```bash
+# View guardrail statistics
+curl http://localhost:8000/api/rag/guardrails/stats
+```
+
+Response includes:
+- Total queries processed
+- Queries blocked (with reasons)
+- Violation breakdown by type
+- Recent guardrail events
+
+### Continuous Improvement
+
+1. **Review blocked queries** - Identify false positives
+2. **Analyze violation patterns** - Adjust thresholds
+3. **Update keyword lists** - Expand domain coverage
+4. **Test adversarial inputs** - Harden defenses
