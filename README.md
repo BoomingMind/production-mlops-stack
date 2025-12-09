@@ -11,11 +11,15 @@ _Production-ready pipeline to predict AQI from weather data with experiment trac
 
 ## Table of Contents
 - [Overview](#overview)
+- [Project Overview](#project-overview) 
+- [LLMOps Objectives](#llmops-Objectives)
 - [Quick Start](#quick-start)
 - [Architecture](#architecture)
 - [Features](#features)
 - [Monitoring Stack](#monitoring-stack)
 - [Cloud Integration](#cloud-integration)
+- [Step-by-Step RAG Deployment Guide](#step-by-step-rag-deployment-guide)
+- [API Usage Examples with Sample Queries](#api-usage-examples-with-sample-queries)
 - [Make Targets](#make-targets)
 - [API Documentation](#api-documentation)
 - [FAQ](#faq)
@@ -375,6 +379,93 @@ If you encounter any issues during deployment:
 - **Out of memory**: Ensure your EC2 instance has enough memory. Consider using `t2.large` or higher for production.
 - **Service not starting**: Check logs with `docker-compose logs -f` and verify configuration.
 - **API not accessible**: Ensure the correct ports are open in the **AWS security group** and Docker is running.
+---
+## API Usage Examples with Sample Queries
+
+This section provides examples of how to use the deployed API for AQI prediction and health checks.
+
+### 1. **API Health Check**
+
+To check if the API is running and healthy, send a **GET** request to the `/health` endpoint:
+
+```bash
+curl http://localhost:8000/health
+```
+
+#### Response:
+```json
+{
+  "status": "healthy"
+}
+```
+
+### 2. **AQI Prediction**
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "co": 250.5,
+    "no2": 12.3,
+    "pm2_5": 25.4,
+    "temperature_2m": 28.5,
+    "relative_humidity_2m": 65.0,
+    "wind_speed_10m": 5.2,
+    "wind_direction_10m": 180.0,
+    "precipitation": 0.0
+  }'
+```
+  
+#### Response:
+```json
+{
+  "aqi_index": 45.2,
+  "calculated_aqi": 46.0,
+  "prediction_time": "2025-10-22T14:30:00",
+  "model_version": "v1.0"
+}
+```
+### 3. **Model Version Information**
+```bash
+curl http://localhost:8000/model_version
+```
+
+#### Response:
+```json
+{
+  "model_version": "v1.0"
+}
+```
+### 4. **Prometheus Metrics**
+```bash
+curl http://localhost:8000/metrics
+```
+
+### 5. **Testing with Different Weather Parameters**
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "co": 100.3,
+    "no2": 5.1,
+    "pm2_5": 18.9,
+    "temperature_2m": 25.0,
+    "relative_humidity_2m": 55.0,
+    "wind_speed_10m": 3.4,
+    "wind_direction_10m": 270.0,
+    "precipitation": 0.0
+  }'
+```
+#### Response:
+```json
+{
+  "aqi_index": 32.1,
+  "calculated_aqi": 33.5,
+  "prediction_time": "2025-10-22T14:45:00",
+  "model_version": "v1.0"
+}
+```
+
+---  
 
 
 ## Make Targets
