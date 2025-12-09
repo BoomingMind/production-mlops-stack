@@ -1,5 +1,10 @@
 import sys
 import os
+
+# Add parent directory to Python path for imports
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
+
 import time
 import json
 from io import BytesIO
@@ -16,10 +21,6 @@ from dotenv import load_dotenv
 
 # Local imports
 from src.monitoring.llm_metrics import get_llm_metrics
-
-# Add parent directory to Python path for imports
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, parent_dir)
 
 # Load environment variables
 load_dotenv()
