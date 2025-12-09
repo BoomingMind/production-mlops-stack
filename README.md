@@ -36,6 +36,28 @@ This project implements an end-to-end machine learning pipeline that:
 -  Automated CI/CD with **GitHub Actions**
 
 ---
+## Project Overview
+
+This project is a **production-ready MLOps pipeline** designed to predict the **Air Quality Index (AQI)** using weather data. The system integrates machine learning with production-grade practices to ensure robust model deployment, continuous monitoring, and easy maintenance. Key components include:
+
+* **Data Ingestion & Processing**: Collecting and processing weather and AQI data.
+* **Model Training & Tracking**: Using **MLflow** for model tracking and versioning.
+* **Drift Monitoring**: Detecting data and model drift with **Evidently AI**.
+* **Model Serving**: Exposing predictions via a **FastAPI**.
+* **Cloud Deployment & CI/CD**: Deployed on **AWS EC2** with automated CI/CD pipelines.
+* **System Monitoring**: Monitoring system health with **Prometheus** and **Grafana**.
+
+## LLMOps Objectives
+
+The primary objectives of this project are:
+
+1. **Model Deployment**: Automate the deployment and updates of machine learning models with CI/CD.
+2. **Experiment Tracking**: Use **MLflow** for tracking model versions and ensuring reproducibility.
+3. **Data Drift Monitoring**: Implement **Evidently AI** for continuous monitoring of data and model drift.
+4. **System Monitoring**: Collect system metrics with **Prometheus** and visualize them with **Grafana**.
+5. **Scalable Model Management**: Use **Docker** for containerized model serving, making the system scalable and easy to maintain.
+6. **Automated Retraining**: Set up pipelines for model retraining to ensure up-to-date predictions.
+
 
 ##  Quick Start
 
@@ -266,6 +288,94 @@ This project can be deployed on an EC2 instance and connect to S3 for model/arti
 - Link: Add a screenshot of the registered model (see below).
 
 ---
+## Step-by-Step RAG Deployment Guide
+
+This section outlines how to deploy the **Random Access Generator (RAG)** system and services for AQI prediction using the steps outlined below. It assumes you are using Docker and Docker Compose for containerization and AWS EC2 for cloud deployment.
+
+### Prerequisites
+- **AWS EC2 instance**: A running instance (Ubuntu 22.04 LTS recommended).
+- **Docker**: Ensure Docker and Docker Compose are installed on your EC2 instance.
+- **GitHub repository access**: Make sure you have cloned the repository.
+
+### Deployment Steps
+
+1. **Clone the Repository**:
+    Clone the repository onto your EC2 instance:
+    ```bash
+    git clone https://github.com/AbdullahIqbal26904/MLOPS_Project.git
+    cd MLOPS_Project
+    ```
+
+2. **Set up Environment Variables**:
+    Copy the example `.env` file and configure it with your AWS credentials:
+    ```bash
+    cp .env.example .env
+    ```
+    Edit the `.env` file with your AWS credentials:
+    ```bash
+    AWS_ACCESS_KEY_ID=your_access_key
+    AWS_SECRET_ACCESS_KEY=your_secret_key
+    MLFLOW_TRACKING_URI=http://localhost:5000  # Update this with your MLflow URI if using a remote instance
+    ```
+
+3. **Build and Run the Docker Containers**:
+    Build and start all required services with Docker Compose:
+    ```bash
+    docker-compose up -d --build
+    ```
+    This command will build the images and start the services in the background. To check the status of the services, use:
+    ```bash
+    docker-compose ps
+    ```
+
+4. **Expose Necessary Ports**:
+    Ensure that the required ports are open for the services:
+    - **FastAPI API**: Port 8000
+    - **MLflow UI**: Port 5000
+    - **Prometheus**: Port 9090
+    - **Grafana**: Port 3000
+    - **Evidently**: Port 7000
+
+5. **Verify the Deployment**:
+    Once the containers are running, you can verify that the services are accessible:
+    - **API Health Check**: `curl http://localhost:8000/health`
+    - **Access MLflow**: Navigate to `http://localhost:5000` to view experiments and models.
+    - **Grafana Dashboard**: Navigate to `http://localhost:3000` to check system metrics.
+    - **Evidently Dashboard**: Navigate to `http://localhost:7000` to view data drift visualizations.
+
+6. **Test the API**:
+    Once everything is running, test the **predict endpoint**:
+    ```bash
+    curl -X POST "http://localhost:8000/predict" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "co": 250.5,
+        "no2": 12.3,
+        "pm2_5": 25.4,
+        "temperature_2m": 28.5,
+        "relative_humidity_2m": 65.0
+      }'
+    ```
+
+7. **Optional — Configure Nginx and SSL**:
+    For added security, set up **Nginx** as a reverse proxy and enable **SSL** using **Let's Encrypt**:
+    - Install Nginx:
+      ```bash
+      sudo apt install nginx -y
+      ```
+    - Configure Nginx to proxy requests to your FastAPI application.
+    - Use Certbot to set up SSL:
+      ```bash
+      sudo apt install certbot python3-certbot-nginx -y
+      sudo certbot --nginx -d yourdomain.com
+      ```
+
+### Troubleshooting
+If you encounter any issues during deployment:
+- **Out of memory**: Ensure your EC2 instance has enough memory. Consider using `t2.large` or higher for production.
+- **Service not starting**: Check logs with `docker-compose logs -f` and verify configuration.
+- **API not accessible**: Ensure the correct ports are open in the **AWS security group** and Docker is running.
+
 
 ## Make Targets
 
