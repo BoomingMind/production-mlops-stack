@@ -98,7 +98,7 @@ class GuardrailLogger:
             enable_prometheus: Whether to emit Prometheus metrics
             logger_name: Name for the Python logger
         """
-        if hasattr(self, '_initialized'):
+        if hasattr(self, "_initialized"):
             return
         self._initialized = True
         # Set up Python logger

@@ -44,7 +44,7 @@ rag_guardrail_logger = None
 app = Flask(__name__)
 
 # Enable CORS for all routes
-CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000", '*'])
+CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000", "*"])
 
 # Global variables to store model, scaler, and data
 model = None
