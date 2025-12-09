@@ -93,7 +93,9 @@ services:
       - FLASK_DEBUG=false
       - HF_HOME=/tmp/huggingface  # Added: Hugging Face cache directory
       - TRANSFORMERS_CACHE=/tmp/huggingface  # Added: Transformers cache directory
+      - PYTHONPATH=/app
     volumes:
+      - ./src:/app/src
       - ./data:/app/data
     dns:
       - 8.8.8.8

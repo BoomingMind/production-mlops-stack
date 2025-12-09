@@ -1,3 +1,10 @@
+import sys
+import os
+
+# Add parent directory to Python path for imports
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
+
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import os
@@ -15,14 +22,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # LLM Monitoring imports
-try:
-    from src.monitoring.llm_metrics import get_llm_metrics, LLMMetrics
-    llm_metrics = get_llm_metrics()
-    METRICS_AVAILABLE = True
-except ImportError:
-    llm_metrics = None
-    METRICS_AVAILABLE = False
-    print("⚠️  LLM metrics module not available")
+print("Starting LLM metrics import...")
+from src.monitoring.llm_metrics import get_llm_metrics, LLMMetrics
+print("Import successful, getting metrics instance...")
+llm_metrics = get_llm_metrics()
+METRICS_AVAILABLE = True
+print(f"✅ LLM metrics initialized successfully: {llm_metrics}")
+print(f"METRICS_AVAILABLE set to: {METRICS_AVAILABLE}")
 
 # RAG imports (lazy loading to avoid startup issues)
 rag_retriever = None
@@ -223,6 +229,7 @@ def generate_future_features(num_hours):
 @app.route("/")
 def home():
     """Home endpoint"""
+    print("Home endpoint called")
     return jsonify(
         {
             "message": "AQI Prediction API",
@@ -243,6 +250,15 @@ def home():
     )
 
 
+@app.route("/debug")
+def debug():
+    return {
+        "llm_metrics": str(llm_metrics),
+        "METRICS_AVAILABLE": METRICS_AVAILABLE,
+        "type": type(llm_metrics).__name__ if llm_metrics else "None"
+    }
+
+
 @app.route("/metrics")
 def metrics():
     """
@@ -258,10 +274,23 @@ def metrics():
     if not METRICS_AVAILABLE:
         return "Metrics not available", 503
     
-    return Response(
-        llm_metrics.get_metrics(),
-        mimetype=llm_metrics.get_content_type()
-    )
+    try:
+        # Import metrics directly in the endpoint
+        from src.monitoring.llm_metrics import get_llm_metrics
+        metrics_instance = get_llm_metrics()
+        metrics_data = metrics_instance.get_metrics()
+        print(f"Metrics data length: {len(metrics_data) if metrics_data else 0}")
+        if not metrics_data:
+            return "No metrics recorded yet", 200
+        return Response(
+            metrics_data,
+            mimetype=metrics_instance.get_content_type()
+        )
+    except Exception as e:
+        print(f"Error getting metrics: {e}")
+        import traceback
+        traceback.print_exc()
+        return "Metrics not available", 503
 
 
 @app.route("/api/llm/stats")
@@ -856,6 +885,7 @@ def rag_query():
         
         # Track successful request metrics
         if METRICS_AVAILABLE:
+            print(f"RAG: Recording metrics with instance: {llm_metrics}")
             llm_metrics.record_rag_query(status="success")
             llm_metrics.record_latency(
                 duration=total_duration,
