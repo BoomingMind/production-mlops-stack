@@ -31,7 +31,7 @@ from functools import wraps
 
 # Try to import prometheus_client, fallback gracefully if not available
 try:
-    from prometheus_client import Counter, Histogram, Gauge, Summary, Info, generate_latest, CONTENT_TYPE_LATEST
+    from prometheus_client import Counter, Histogram, Gauge, Summary, Info, CONTENT_TYPE_LATEST
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
@@ -344,7 +344,7 @@ class LLMMetrics:
         
         try:
             yield
-        except Exception as e:
+        except Exception:
             status = "error"
             raise
         finally:

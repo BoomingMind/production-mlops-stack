@@ -1,32 +1,34 @@
 import sys
 import os
+import time
+import json
+from io import BytesIO
+from datetime import datetime, timedelta
+
+# Third-party imports
+import boto3
+import joblib
+import numpy as np
+import pandas as pd
+from flask import Flask, jsonify, request, Response
+from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Local imports
+from src.monitoring.llm_metrics import get_llm_metrics
 
 # Add parent directory to Python path for imports
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
 
-from flask import Flask, jsonify, request, Response
-from flask_cors import CORS
-import os
-import time
-import boto3
-import joblib
-import numpy as np
-import pandas as pd
-import json
-from io import BytesIO
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
-
 # Load environment variables
 load_dotenv()
 
-# LLM Monitoring imports
+# LLM Monitoring initialization
 print("Starting LLM metrics import...")
-from src.monitoring.llm_metrics import get_llm_metrics, LLMMetrics
-print("Import successful, getting metrics instance...")
 llm_metrics = get_llm_metrics()
 METRICS_AVAILABLE = True
+print("Import successful, getting metrics instance...")
 print(f"✅ LLM metrics initialized successfully: {llm_metrics}")
 print(f"METRICS_AVAILABLE set to: {METRICS_AVAILABLE}")
 
@@ -792,7 +794,7 @@ def rag_query():
                 # Estimate input/output split (rough: 70% input, 30% output for RAG)
                 input_tokens = int(tokens_used * 0.7)
                 output_tokens = tokens_used - input_tokens
-                cost = llm_metrics.record_tokens(
+                llm_metrics.record_tokens(
                     input_tokens=input_tokens,
                     output_tokens=output_tokens,
                     model=result.get("model", model_name)
