@@ -547,6 +547,7 @@ Health check endpoint.
 #### `GET /metrics`
 Prometheus metrics endpoint.
 
+
 ---
 
 ## FAQ
@@ -607,6 +608,9 @@ Prometheus metrics endpoint.
 3. Wait 1-2 minutes for metrics to populate
 
 ---
+## Evaluation
+
+You can find the evaluation details of the AQI Prediction system in the [EVALUATION.md](EVALUATION.md) file.
 
 ## License
 
