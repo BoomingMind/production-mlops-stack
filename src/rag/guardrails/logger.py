@@ -77,6 +77,13 @@ class GuardrailLogger:
         stats = logger.get_stats()
     """
 
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(
         self,
         log_file: Optional[str] = None,
@@ -91,6 +98,9 @@ class GuardrailLogger:
             enable_prometheus: Whether to emit Prometheus metrics
             logger_name: Name for the Python logger
         """
+        if hasattr(self, '_initialized'):
+            return
+        self._initialized = True
         # Set up Python logger
         self.logger = logging.getLogger(logger_name)
         if not self.logger.handlers:

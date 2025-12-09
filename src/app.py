@@ -44,7 +44,7 @@ rag_guardrail_logger = None
 app = Flask(__name__)
 
 # Enable CORS for all routes
-CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
+CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000", '*'])
 
 # Global variables to store model, scaler, and data
 model = None
@@ -279,15 +279,11 @@ def metrics():
         return "Metrics not available", 503
 
     try:
-        # Import metrics directly in the endpoint
-        from src.monitoring.llm_metrics import get_llm_metrics
-
-        metrics_instance = get_llm_metrics()
-        metrics_data = metrics_instance.get_metrics()
+        metrics_data = llm_metrics.get_metrics()
         print(f"Metrics data length: {len(metrics_data) if metrics_data else 0}")
         if not metrics_data:
             return "No metrics recorded yet", 200
-        return Response(metrics_data, mimetype=metrics_instance.get_content_type())
+        return Response(metrics_data, mimetype=llm_metrics.get_content_type())
     except Exception as e:
         print(f"Error getting metrics: {e}")
         import traceback

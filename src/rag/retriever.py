@@ -33,7 +33,8 @@ class DocumentRetriever:
 
         # Use sentence-transformers for embeddings
         self.embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=RAGConfig.EMBEDDING_MODEL
+            model_name=RAGConfig.EMBEDDING_MODEL,
+            device="cpu",
         )
 
         # Get or create collection
