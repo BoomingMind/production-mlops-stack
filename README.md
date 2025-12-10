@@ -1,39 +1,42 @@
-# MLOps Project - AQI Weather Prediction System
+# MLOps Project - AQI Weather Prediction & Recommendation System
 
-_Production-ready pipeline to predict AQI from weather data with experiment tracking, drift monitoring, and an inference API._
+_Production-ready pipeline to predict AQI from weather data with experiment tracking, drift monitoring, and an intelligent recommendation API._
 
 [![MLOps](http://img.shields.io/badge/MLOps-Production-blue)](http://github.com)
 [![Python](http://img.shields.io/badge/Python-3.11-green)](http://python.org)
 [![FastAPI](http://img.shields.io/badge/FastAPI-0.104-teal)](http://fastapi.tiangolo.com)
 [![MLflow](http://img.shields.io/badge/MLflow-2.9-orange)](http://mlflow.org)
 
-> Production-ready MLOps pipeline for Air Quality Index (AQI) prediction using weather parameters with comprehensive monitoring and experiment tracking.
+> Production-ready MLOps pipeline for Air Quality Index (AQI) prediction using weather parameters with comprehensive monitoring, experiment tracking, and intelligent health recommendations via RAG.
 
 ## Table of Contents
 - [Overview](#overview)
 - [Quick Start](#quick-start)
 - [Architecture](#architecture)
+- [RAG System Deployment Guide](#rag-system-deployment-guide)
 - [Features](#features)
 - [Monitoring Stack](#monitoring-stack)
 - [Cloud Integration](#cloud-integration)
 - [Make Targets](#make-targets)
 - [API Documentation](#api-documentation)
+- [Evaluation](#evaluation)
 - [FAQ](#faq)
 
 ---
 
 ## Overview
 
-**🌐 Live Production API**: [http://13.50.100.228:8000/](http://13.50.100.228:8000/)
+**🌐 Live Production API**: [http://56.228.3.41:8000/](http://56.228.3.41:8000/)
 
-**Elevator Pitch:** Real-time AQI prediction system leveraging weather data with production-grade MLOps practices including experiment tracking, data drift monitoring, and comprehensive observability. **Now deployed and running in production on AWS EC2!**
+**Elevator Pitch:** Real-time AQI prediction system leveraging weather data with production-grade MLOps practices including experiment tracking, data drift monitoring, and comprehensive observability. **Now enhanced with LLMOps capabilities for intelligent AQI health recommendations through RAG.** **Deployed and running in production on AWS EC2!**
 
-This project implements an end-to-end machine learning pipeline that:
+This project implements an end-to-end **MLOps and LLMOps pipeline** that:
 -  Fetches weather and AQI data from APIs and stores in AWS S3
 -  Tracks experiments with **MLflow**
 -  Monitors data drift with **Evidently AI**
 -  Collects system metrics with **Prometheus + Grafana**
 -  Serves predictions via **FastAPI**
+-  Provides intelligent health recommendations via **RAG (Retrieval-Augmented Generation)** using LLMs
 -  Containerized with **Docker**
 -  Automated CI/CD with **GitHub Actions**
 -  ** Deployed on AWS EC2 with full production stack**
@@ -44,12 +47,12 @@ This project implements an end-to-end machine learning pipeline that:
 
 ### 🚀 Try It Live
 
-**Production API**: [http://13.50.100.228:8000/](http://13.50.100.228:8000/)  
-**API Documentation**: [http://13.50.100.228:8000/docs](http://13.50.100.228:8000/docs)
+**Production API**: [http://56.228.3.41:8000/](http://56.228.3.41:8000/)  
+**Production Frontend**: [http://56.228.3.41:3000/](http://56.228.3.41:3000/)
 
 Test the live API:
 ```bash
-curl http://13.50.100.228:8000/health
+curl http://56.228.3.41:8000/health
 ```
 
 ### TL;DR - Local Development
@@ -120,13 +123,14 @@ curl http://localhost:8000/health
 
 ### Access Services
 
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| **MLflow UI** | http://localhost:5000 | - |
-| **Prometheus** | http://localhost:9090 | - |
-| **Grafana** | http://localhost:3000 | admin / admin |
-| **Evidently Dashboard** | http://localhost:7000 | - |
-| **FastAPI Docs** | http://localhost:8000/docs | - |
+| Service | Local URL | Production URL | Credentials |
+|---------|-----------|----------------|-------------|
+| **Frontend** | http://localhost:3000 | http://56.228.3.41:3000 | - |
+| **MLflow UI** | http://localhost:5000 | http://56.228.3.41:5000 | - |
+| **Prometheus** | http://localhost:9090 | http://56.228.3.41:9090 | - |
+| **Grafana** | http://localhost:3000 | http://56.228.3.41:3000 | admin / admin |
+| **Evidently Dashboard** | http://localhost:7000 | http://56.228.3.41:7000 | - |
+| **FastAPI Docs** | http://localhost:8000/docs | http://56.228.3.41:8000/docs | - |
 
 ---
 
@@ -152,17 +156,75 @@ graph LR
 3. **Model Training**: Multiple models tracked with MLflow
 4. **Model Registry**: Best model stored in MLflow + S3
 5. **Inference API**: FastAPI with Prometheus metrics
-6. **Monitoring**: 
-   - **Evidently**: Data drift at localhost:7000
-   - **Prometheus**: System metrics at localhost:9090
-   - **Grafana**: Dashboards at localhost:3000
+6. **RAG Recommendation System**: LLM-powered AQI health recommendations with guardrails
+7. **Monitoring**: 
+   - **Evidently**: Data drift at http://56.228.3.41:7000
+   - **Prometheus**: System metrics at http://56.228.3.41:9090
+   - **Grafana**: Dashboards at http://56.228.3.41:3000
+
+---
+
+## RAG Recommendation System Deployment Guide
+
+The project includes a **Retrieval-Augmented Generation (RAG)** system for intelligent AQI health recommendations using LLMs. Follow these steps to deploy and use the recommendation system:
+
+### Step 1: Ingest Knowledge Base
+```bash
+# Ingest documents into ChromaDB vector store
+make rag-ingest
+
+# This will:
+# - Load documents from data/knowledge/
+# - Chunk and embed text using sentence-transformers
+# - Store in ChromaDB for retrieval
+```
+
+### Step 2: Configure LLM API
+```bash
+# Set up Groq API key in .env
+echo "GROQ_API_KEY=your_groq_api_key_here" >> .env
+
+# Or use OpenAI API
+echo "OPENAI_API_KEY=your_openai_api_key_here" >> .env
+```
+
+### Step 3: Start RAG Services
+```bash
+# Start all services including RAG API
+docker-compose up -d
+
+# Or run locally
+python -m src.app
+```
+
+### Step 4: Test RAG API
+```bash
+# Query the RAG system
+curl -X POST "http://localhost:8000/api/rag/query" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What precautions should I take when AQI is 150?"
+  }'
+
+# Response includes:
+# - AI-generated answer
+# - Source documents used
+# - Confidence score
+# - Guardrail validation results
+```
+
+### RAG Architecture Components
+- **Document Retriever**: ChromaDB vector store with sentence embeddings
+- **Response Generator**: Groq LLM (llama-3.3-70b-versatile) with RAG prompts
+- **Guardrails**: Input validation (PII detection, prompt injection) and output moderation (toxicity, hallucination)
+- **Monitoring**: LLM metrics collection with Prometheus integration
 
 ---
 
 ## Features
 
 ### MLflow Experiment Tracking
-- **Tracking URI**: `http://localhost:5000`
+- **Tracking URI**: `http://56.228.3.41:5000` (Production) / `http://localhost:5000` (Local)
 - **Features**:
   - Automatic experiment logging
   - Parameter and metric tracking
@@ -173,7 +235,8 @@ graph LR
 **Usage**:
 ```python
 import mlflow
-mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_tracking_uri("http://56.228.3.41:5000")  # Production
+# mlflow.set_tracking_uri("http://localhost:5000")  # Local development
 mlflow.set_experiment("AQI_Weather_Prediction")
 
 with mlflow.start_run():
@@ -184,7 +247,7 @@ with mlflow.start_run():
 
 ### Evidently Data Drift Monitoring
 
-**Exposed at**: `http://localhost:7000`
+**Exposed at**: `http://56.228.3.41:7000`
 
 Monitors:
 - Feature distribution drift
@@ -254,7 +317,7 @@ AWS_SECRET_ACCESS_KEY=your_secret_key
 #### Deployment Architecture
 
 ```
-Internet → EC2 Instance (13.50.100.228:8000/)
+Internet → EC2 Instance (56.228.3.41:8000/)
 ├── FastAPI Application (Port 8000)
 ├── MLflow Server (Port 5000)
 ├── Prometheus (Port 9090)
@@ -273,7 +336,7 @@ Internet → EC2 Instance (13.50.100.228:8000/)
 - AMI: Ubuntu 22.04 LTS
 - Instance Type: t3.medium (2 vCPU, 4GB RAM)
 - Storage: 30GB EBS (gp3)
-- Public IP: 13.50.100.228:8000/
+- Public IP: 56.228.3.41:8000/
 ```
 
 **2. Configure Security Group**
@@ -291,7 +354,7 @@ Internet → EC2 Instance (13.50.100.228:8000/)
 **3. SSH into EC2 and Install Dependencies**
 ```bash
 # Connect to EC2
-ssh -i your-key.pem ubuntu@13.50.100.228:8000/
+ssh -i your-key.pem ubuntu@56.228.3.41:8000/
 
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -377,16 +440,17 @@ sudo systemctl start mlops.service
 
 #### Production Endpoints
 
-**Status**: ⚠️ Deployment incomplete due to memory constraints
+**Status**: ✅ Deployed and Running
 
 | Service | URL | Status |
 |---------|-----|--------|
-| **API** | http://13.50.100.228:8000/ |  Not Running (Memory Issue) |
-| **API Docs** | http://13.50.100.228:8000/docs |  Not Running (Memory Issue) |
-| **Health Check** | http://13.50.100.228:8000/health |  Not Running (Memory Issue) |
-| **MLflow UI** | http://13.50.100.228:8000/:5000 |  Not Running (Memory Issue) |
-| **Prometheus** | http://13.50.100.228:8000/:9090 |  Not Running (Memory Issue) |
-| **Grafana** | http://13.50.100.228:8000/:3000 |  Not Running (Memory Issue) |
+| **Frontend** | http://56.228.3.41:3000/ | ✅ Running |
+| **API** | http://56.228.3.41:8000/ | ✅ Running |
+| **API Docs** | http://56.228.3.41:8000/docs | ✅ Running |
+| **Health Check** | http://56.228.3.41:8000/health | ✅ Running |
+| **MLflow UI** | http://56.228.3.41:5000 | ✅ Running |
+| **Prometheus** | http://56.228.3.41:9090 | ✅ Running |
+| **Grafana** | http://56.228.3.41:3000 | ✅ Running |
 
 **What Happened**:
 - All prerequisites (Docker, Docker Compose, Git) were successfully installed 
@@ -405,10 +469,10 @@ sudo systemctl start mlops.service
 
 ```bash
 # Health check
-curl http://13.50.100.228:8000/health
+curl http://56.228.3.41:8000/health
 
 # Make a prediction
-curl -X POST "http://13.50.100.228:8000/predict" \
+curl -X POST "http://56.228.3.41:8000/predict" \
   -H "Content-Type: application/json" \
   -d '{
     "co": 250.5,
@@ -578,11 +642,84 @@ curl -X POST "http://localhost:8000/predict" \
   }'
 ```
 
+#### `POST /api/rag/query`
+Query the RAG system for AQI health recommendations.
+
+**Request**:
+```json
+{
+  "query": "What precautions should I take when AQI is 150?"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "query": "What precautions should I take when AQI is 150?",
+  "answer": "When AQI reaches 150 (Unhealthy category), you should take several precautions to protect your health...",
+  "sources_used": ["aqi_overview.txt", "health_precautions.txt"],
+  "confidence": "high",
+  "context_chunks_retrieved": 3,
+  "tokens_used": 245,
+  "generated_at": "2025-12-10 15:30:00",
+  "guardrails": {
+    "input_validated": true,
+    "output_validated": true,
+    "confidence_score": 0.92,
+    "events": [...]
+  },
+  "metrics": {
+    "total_duration_ms": 1250.50,
+    "retrieval_duration_ms": 45.20,
+    "generation_duration_ms": 890.30,
+    "input_guard_duration_ms": 12.50,
+    "output_guard_duration_ms": 302.50
+  }
+}
+```
+
+**Sample Queries**:
+```bash
+# Basic health recommendations
+curl -X POST "http://localhost:8000/api/rag/query" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What should I do if AQI is hazardous?"}'
+
+# Specific pollutant recommendations
+curl -X POST "http://localhost:8000/api/rag/query" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "How does PM2.5 affect respiratory health?"}'
+
+# Vulnerable populations recommendations
+curl -X POST "http://localhost:8000/api/rag/query" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What extra precautions for children during high AQI?"}'
+```
+
+#### `GET /api/rag/sources`
+Get list of knowledge base sources.
+
+#### `GET /api/rag/guardrails/stats`
+Get guardrail performance statistics.
+
 #### `GET /health`
 Health check endpoint.
 
 #### `GET /metrics`
 Prometheus metrics endpoint.
+
+---
+
+## Evaluation
+
+For detailed evaluation methodology, prompt engineering results, and insights from the AQI Health Advisory RAG system, see [EVALUATION.md](EVALUATION.md).
+
+Key findings:
+- **Meta-prompting** achieved the highest performance across all metrics (ROUGE-L: 0.82, Factuality: 4.7/5)
+- **Few-shot learning** improved with more examples but showed diminishing returns
+- **Chain-of-thought reasoning** provided moderate improvements at higher computational cost
+- All strategies performed consistently across different AQI ranges
 
 ---
 

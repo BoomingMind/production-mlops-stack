@@ -130,7 +130,7 @@ rag-serve:
 	@echo "  POST /api/rag/query   - Ask questions about air quality"
 	@echo "  GET  /api/rag/sources - List indexed documents"
 	@echo ""
-	python src/app.py
+	python -m src.app
 
 rag-clean:
 	@echo "Cleaning ChromaDB data..."
