@@ -148,9 +148,9 @@ class AQIAdvisor:
                     "aqi_value": aqi_value,
                     "aqi_category": aqi_category,
                     "latency_seconds": round(latency, 3),
-                    "tokens_used": response.usage.total_tokens
-                    if response.usage
-                    else None,
+                    "tokens_used": (
+                        response.usage.total_tokens if response.usage else None
+                    ),
                 },
             }
         except json.JSONDecodeError as e:

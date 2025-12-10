@@ -16,9 +16,33 @@ services:
       --default-artifact-root /mlflow/artifacts
       --host 0.0.0.0
       --port 5001
+      --allowed-hosts "*"
     networks:
       - monitoring
     restart: unless-stopped
+  
+  # Add this training service
+  training:
+    build: .  # Uses the same Dockerfile as your API
+    container_name: aqi_training
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - MLFLOW_TRACKING_URI=http://mlflow:5001
+      - PYTHONPATH=/app
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      # Optional: mount MLflow artifacts if you want them on host
+      - ./mlflow-artifacts:/mlflow/artifacts
+    networks:
+      - monitoring
+    depends_on:
+      - mlflow
+    command: python src/model_train.py  # Override the default command
+    restart: "no"  # Run once and exit
+
 
   # Prometheus - Metrics Collection
   prometheus:

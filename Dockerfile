@@ -38,7 +38,8 @@ COPY --from=builder ${VENV_PATH} ${VENV_PATH}
 RUN addgroup --system app \
     && adduser --system --ingroup app app \
     && mkdir -p /app/src /app/data/knowledge /app/data/chromadb \
-    && chown -R app:app /app
+    && chown -R app:app /app \
+    && mkdir -p /app/mlflow_artifacts && chown -R app:app /app/mlflow_artifacts
 
 # Copy the entire src directory (includes RAG pipeline, guardrails, etc.)
 COPY --chown=app:app src/ ./src/
