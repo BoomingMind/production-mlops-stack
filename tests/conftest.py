@@ -1,6 +1,7 @@
 """
 Test configuration and fixtures
 """
+
 import pytest
 import os
 import sys
