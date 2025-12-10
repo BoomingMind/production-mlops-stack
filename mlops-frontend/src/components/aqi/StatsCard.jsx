@@ -27,9 +27,12 @@ export function StatsCard({ stats, isLoading }) {
     return null;
   }
 
-  const { average_aqi, min_aqi, max_aqi, std_deviation } = stats;
+  const { 
+    average_aqi, min_aqi, max_aqi, std_deviation,
+    calculated_aqi_average, calculated_aqi_min, calculated_aqi_max, calculated_aqi_std_deviation
+  } = stats;
 
-  const statItems = [
+  const aqiIndexStats = [
     {
       label: 'Average AQI',
       value: average_aqi,
@@ -56,6 +59,33 @@ export function StatsCard({ stats, isLoading }) {
     },
   ];
 
+  const calculatedAqiStats = [
+    {
+      label: 'Average AQI',
+      value: calculated_aqi_average,
+      icon: BarChart3,
+      color: getAQIColor(calculated_aqi_average),
+    },
+    {
+      label: 'Minimum',
+      value: calculated_aqi_min,
+      icon: TrendingDown,
+      color: getAQIColor(calculated_aqi_min),
+    },
+    {
+      label: 'Maximum',
+      value: calculated_aqi_max,
+      icon: TrendingUp,
+      color: getAQIColor(calculated_aqi_max),
+    },
+    {
+      label: 'Std Deviation',
+      value: calculated_aqi_std_deviation,
+      icon: Minus,
+      color: '#6b7280',
+    },
+  ];
+
   return (
     <Card className="col-span-full lg:col-span-1">
       <CardHeader>
@@ -66,26 +96,60 @@ export function StatsCard({ stats, isLoading }) {
         <CardDescription>Summary of predicted AQI values</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          {statItems.map((item) => (
-            <div
-              key={item.label}
-              className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <item.icon className="w-4 h-4 text-gray-500" />
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {item.label}
+        {/* AQI Index Statistics */}
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            AQI Index
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            {aqiIndexStats.map((item) => (
+              <div
+                key={item.label}
+                className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <item.icon className="w-3 h-3 text-gray-500" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {item.label}
+                  </span>
+                </div>
+                <span
+                  className="text-xl font-bold"
+                  style={{ color: item.color }}
+                >
+                  {Math.round(item.value)}
                 </span>
               </div>
-              <span
-                className="text-2xl font-bold"
-                style={{ color: item.color }}
+            ))}
+          </div>
+        </div>
+
+        {/* Calculated AQI Statistics */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            Calculated AQI
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            {calculatedAqiStats.map((item) => (
+              <div
+                key={item.label}
+                className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50"
               >
-                {Math.round(item.value)}
-              </span>
-            </div>
-          ))}
+                <div className="flex items-center gap-2 mb-1">
+                  <item.icon className="w-3 h-3 text-gray-500" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {item.label}
+                  </span>
+                </div>
+                <span
+                  className="text-xl font-bold"
+                  style={{ color: item.color }}
+                >
+                  {Math.round(item.value)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>

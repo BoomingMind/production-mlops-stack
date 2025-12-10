@@ -151,30 +151,69 @@ export default function PredictionsPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Average AQI</p>
-                        <p className="text-3xl font-bold text-blue-600">
-                          {Math.round(fullPredictions.statistics.average_aqi)}
-                        </p>
+                    {/* AQI Index Statistics */}
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                        AQI Index
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Average AQI</p>
+                          <p className="text-3xl font-bold text-blue-600">
+                            {Math.round(fullPredictions.statistics.average_aqi)}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Peak AQI</p>
+                          <p className="text-3xl font-bold text-red-600">
+                            {Math.round(fullPredictions.statistics.max_aqi)}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Lowest AQI</p>
+                          <p className="text-3xl font-bold text-green-600">
+                            {Math.round(fullPredictions.statistics.min_aqi)}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Std Deviation</p>
+                          <p className="text-3xl font-bold text-gray-600">
+                            ±{fullPredictions.statistics.std_deviation.toFixed(1)}
+                          </p>
+                        </div>
                       </div>
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Peak AQI</p>
-                        <p className="text-3xl font-bold text-red-600">
-                          {Math.round(fullPredictions.statistics.max_aqi)}
-                        </p>
-                      </div>
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Lowest AQI</p>
-                        <p className="text-3xl font-bold text-green-600">
-                          {Math.round(fullPredictions.statistics.min_aqi)}
-                        </p>
-                      </div>
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Std Deviation</p>
-                        <p className="text-3xl font-bold text-gray-600">
-                          ±{fullPredictions.statistics.std_deviation.toFixed(1)}
-                        </p>
+                    </div>
+
+                    {/* Calculated AQI Statistics */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                        Calculated AQI
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Average AQI</p>
+                          <p className="text-3xl font-bold text-blue-600">
+                            {Math.round(fullPredictions.statistics.calculated_aqi_average)}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Peak AQI</p>
+                          <p className="text-3xl font-bold text-red-600">
+                            {Math.round(fullPredictions.statistics.calculated_aqi_max)}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Lowest AQI</p>
+                          <p className="text-3xl font-bold text-green-600">
+                            {Math.round(fullPredictions.statistics.calculated_aqi_min)}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Std Deviation</p>
+                          <p className="text-3xl font-bold text-gray-600">
+                            ±{fullPredictions.statistics.calculated_aqi_std_deviation.toFixed(1)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     

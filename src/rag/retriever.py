@@ -34,7 +34,6 @@ class DocumentRetriever:
         # Use sentence-transformers for embeddings
         self.embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
             model_name=RAGConfig.EMBEDDING_MODEL,
-            device="cpu",
         )
 
         # Get or create collection
@@ -43,6 +42,13 @@ class DocumentRetriever:
             embedding_function=self.embedding_fn,
             metadata={"description": "AQI knowledge base"},
         )
+
+        # Preload the embedding model to avoid meta device issues
+        try:
+            self.embedding_fn(["test"])
+            print("   Embedding model preloaded successfully")
+        except Exception as e:
+            print(f"   Warning: Embedding model preload failed: {e}")
 
         print(f"✅ ChromaDB initialized. Collection: {RAGConfig.COLLECTION_NAME}")
         print(f"   Documents in collection: {self.collection.count()}")

@@ -405,6 +405,7 @@ def predict():
 
         # Calculate statistics
         aqi_values = [r["predicted_aqi_index"] for r in results]
+        calculated_aqi_values = [r["predicted_calculated_aqi"] for r in results]
 
         return jsonify(
             {
@@ -421,6 +422,12 @@ def predict():
                     "min_aqi": round(np.min(aqi_values), 2),
                     "max_aqi": round(np.max(aqi_values), 2),
                     "std_deviation": round(np.std(aqi_values), 2),
+                    "calculated_aqi_average": round(np.mean(calculated_aqi_values), 2),
+                    "calculated_aqi_min": round(np.min(calculated_aqi_values), 2),
+                    "calculated_aqi_max": round(np.max(calculated_aqi_values), 2),
+                    "calculated_aqi_std_deviation": round(
+                        np.std(calculated_aqi_values), 2
+                    ),
                 },
                 "predictions": results,
             }
