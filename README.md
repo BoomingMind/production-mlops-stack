@@ -26,7 +26,7 @@ _Production-ready pipeline to predict AQI from weather data with experiment trac
 
 ## Overview
 
-**🌐 Live Production API**: [http://13.49.64.237:3000/](http://13.49.64.237:3000/)
+**🌐 Live Production API**: [http://13.61.179.252:3000/](http://13.61.179.252:3000/)
 
 **Elevator Pitch:** Real-time AQI prediction system leveraging weather data with production-grade MLOps practices including experiment tracking, data drift monitoring, and comprehensive observability. **Now enhanced with LLMOps capabilities for intelligent AQI health recommendations through RAG.** **Deployed and running in production on AWS EC2!**
 
@@ -47,12 +47,12 @@ This project implements an end-to-end **MLOps and LLMOps pipeline** that:
 
 ### 🚀 Try It Live
 
-**Production API**: [http://13.49.64.237:8000/](http://13.49.64.237:8000/)  
-**Production Frontend**: [http://13.49.64.237:3000/](http://13.49.64.237:3000/)
+**Production API**: [http://13.61.179.252:8000/](http://13.61.179.252:8000/)  
+**Production Frontend**: [http://13.61.179.252:3000/](http://13.61.179.252:3000/)
 
 Test the live API:
 ```bash
-curl http://13.49.64.237:8000/health
+curl http://13.61.179.252:8000/health
 ```
 
 ### TL;DR - Local Development
@@ -125,12 +125,12 @@ curl http://localhost:8000/health
 
 | Service | Local URL | Production URL | Credentials |
 |---------|-----------|----------------|-------------|
-| **Frontend** | http://localhost:3000 | http://13.49.64.237:3000 | - |
-| **MLflow UI** | http://localhost:5001 | http://13.49.64.237:5001 | - |
-| **Prometheus** | http://localhost:9090 | http://13.49.64.237:9090 | - |
-| **Grafana** | http://localhost:3000 | http://13.49.64.237:3001 | id: admin / pass: admin |
-| **Evidently Dashboard** | (run notebooks/)http://localhost:7000 | http://13.49.64.237:7000 | - |
-| **FastAPI Docs** | http://localhost:8000/docs | http://13.49.64.237:8000/docs | - |
+| **Frontend** | http://localhost:3000 | http://13.61.179.252:3000 | - |
+| **MLflow UI** | http://localhost:5001 | http://13.61.179.252:5001 | - |
+| **Prometheus** | http://localhost:9090 | http://13.61.179.252:9090 | - |
+| **Grafana** | http://localhost:3000 | http://13.61.179.252:3001 | id: admin / pass: admin |
+| **Evidently Dashboard** | (run notebooks/)http://localhost:7000 | http://13.61.179.252:7000 | - |
+| **FastAPI Docs** | http://localhost:8000/docs | http://13.61.179.252:8000/docs | - |
 
 ---
 
@@ -158,9 +158,9 @@ graph LR
 5. **Inference API**: FastAPI with Prometheus metrics
 6. **RAG Recommendation System**: LLM-powered AQI health recommendations with guardrails
 7. **Monitoring**: 
-   - **Evidently**: Data drift at http://13.49.64.237:7000
-   - **Prometheus**: System metrics at http://13.49.64.237:9090
-   - **Grafana**: Dashboards at http://13.49.64.237:3000
+   - **Evidently**: Data drift at http://13.61.179.252:7000
+   - **Prometheus**: System metrics at http://13.61.179.252:9090
+   - **Grafana**: Dashboards at http://13.61.179.252:3000
 
 ---
 
@@ -224,7 +224,7 @@ curl -X POST "http://localhost:8000/api/rag/query" \
 ## Features
 
 ### MLflow Experiment Tracking
-- **Tracking URI**: `http://13.49.64.237:5000` (Production) / `http://localhost:5000` (Local)
+- **Tracking URI**: `http://13.61.179.252:5000` (Production) / `http://localhost:5000` (Local)
 - **Features**:
   - Automatic experiment logging
   - Parameter and metric tracking
@@ -235,7 +235,7 @@ curl -X POST "http://localhost:8000/api/rag/query" \
 **Usage**:
 ```python
 import mlflow
-mlflow.set_tracking_uri("http://13.49.64.237:5000")  # Production
+mlflow.set_tracking_uri("http://13.61.179.252:5000")  # Production
 # mlflow.set_tracking_uri("http://localhost:5000")  # Local development
 mlflow.set_experiment("AQI_Weather_Prediction")
 
@@ -247,7 +247,7 @@ with mlflow.start_run():
 
 ### Evidently Data Drift Monitoring
 
-**Exposed at**: `http://13.49.64.237:7000`
+**Exposed at**: `http://13.61.179.252:7000`
 
 Monitors:
 - Feature distribution drift
@@ -317,7 +317,7 @@ AWS_SECRET_ACCESS_KEY=your_secret_key
 #### Deployment Architecture
 
 ```
-Internet → EC2 Instance (13.49.64.237:8000/)
+Internet → EC2 Instance (13.61.179.252:8000/)
 ├── FastAPI Application (Port 8000)
 ├── MLflow Server (Port 5000)
 ├── Prometheus (Port 9090)
@@ -336,7 +336,7 @@ Internet → EC2 Instance (13.49.64.237:8000/)
 - AMI: Ubuntu 22.04 LTS
 - Instance Type: t3.medium (2 vCPU, 4GB RAM)
 - Storage: 30GB EBS (gp3)
-- Public IP: 13.49.64.237:8000/
+- Public IP: 13.61.179.252:8000/
 ```
 
 **2. Configure Security Group**
@@ -354,7 +354,7 @@ Internet → EC2 Instance (13.49.64.237:8000/)
 **3. SSH into EC2 and Install Dependencies**
 ```bash
 # Connect to EC2
-ssh -i your-key.pem ubuntu@13.49.64.237:8000/
+ssh -i your-key.pem ubuntu@13.61.179.252:8000/
 
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -444,13 +444,13 @@ sudo systemctl start mlops.service
 
 | Service | URL | Status |
 |---------|-----|--------|
-| **Frontend** | http://13.49.64.237:3000/ | ✅ Running |
-| **API** | http://13.49.64.237:8000/ | ✅ Running |
-| **API Docs** | http://13.49.64.237:8000/docs | ✅ Running |
-| **Health Check** | http://13.49.64.237:8000/health | ✅ Running |
-| **MLflow UI** | http://13.49.64.237:5000 | ✅ Running |
-| **Prometheus** | http://13.49.64.237:9090 | ✅ Running |
-| **Grafana** | http://13.49.64.237:3000 | ✅ Running |
+| **Frontend** | http://13.61.179.252:3000/ | ✅ Running |
+| **API** | http://13.61.179.252:8000/ | ✅ Running |
+| **API Docs** | http://13.61.179.252:8000/docs | ✅ Running |
+| **Health Check** | http://13.61.179.252:8000/health | ✅ Running |
+| **MLflow UI** | http://13.61.179.252:5000 | ✅ Running |
+| **Prometheus** | http://13.61.179.252:9090 | ✅ Running |
+| **Grafana** | http://13.61.179.252:3000 | ✅ Running |
 
 **What Happened**:
 - All prerequisites (Docker, Docker Compose, Git) were successfully installed 
@@ -469,10 +469,10 @@ sudo systemctl start mlops.service
 
 ```bash
 # Health check
-curl http://13.49.64.237:8000/health
+curl http://13.61.179.252:8000/health
 
 # Make a prediction
-curl -X POST "http://13.49.64.237:8000/predict" \
+curl -X POST "http://13.61.179.252:8000/predict" \
   -H "Content-Type: application/json" \
   -d '{
     "co": 250.5,
